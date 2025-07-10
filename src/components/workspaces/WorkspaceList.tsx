@@ -60,7 +60,7 @@ export function WorkspaceList({
                 Created by: <span className="font-medium">{ws.creator?.name}</span>
               </p>
             </div>
-            {ws.creator.id === userId && <AddMemberDialog workspaceId={ws.id} refetch={refetch}/>}
+            {ws.creator.id === userId && ws.type === 'private' && <AddMemberDialog workspaceId={ws.id} refetch={refetch}/>}
             {ws.type === 'public' && <Button
               onClick={() => { handleJoinPublic({ workspaceId: ws.id }) }}
             >

@@ -6,8 +6,10 @@ export const workspace = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL_SOCKET,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) headers.set("Authorization", `Bearer ${token}`);
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("token");
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+      }
       return headers;
     },
   }),

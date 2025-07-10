@@ -15,12 +15,12 @@ export default function CreatePublicWorkspaceDialog({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
-  const [createWorkspace] = useCreatePublicWorkspaceMutation();
+  const [createpubWorkspace] = useCreatePublicWorkspaceMutation();
 
  const handleCreate = async () => {
   const loadingId = toast.loading("Creating workspace…");
   try {
-    const res = await createWorkspace({ name: name.trim() || "New Workspace" }).unwrap();
+    const res = await createpubWorkspace({ name: name.trim() || "New Workspace" }).unwrap();
 
     console.log("✅ Response from createWorkspace:", res); // 👈 log this
 
@@ -35,13 +35,9 @@ export default function CreatePublicWorkspaceDialog({
     refetch();
     setOpen(false);
     setName("");
-  } catch (err: any) {
-    toast.dismiss(loadingId);
-
-    // 👇 log exact structure to debug
-    console.error("❌ Error response:", err);
-
-    toast.error(err?.data?.message || err?.message || "An error occurred");
+  } catch (err) {
+    toast.dismiss();
+    toast.error("An error occurred");
   }
 };
 
