@@ -65,7 +65,7 @@ const Auth = () => {
       ? userData.imageUrl.includes("https://lh3.googleusercontent.com")
         ? userData.imageUrl
         : BASE_IMAGE + userData.imageUrl
-      : "/icons/layout/header/profileImg.png";
+      : "/profileImg.png";
 
   return (
     <div>
@@ -121,7 +121,7 @@ const Auth = () => {
                         }`}
                         onError={(e) => {
                           e.currentTarget.src =
-                            "/icons/layout/header/profileImg.png";
+                            "/profileImg.png";
                         }}
                       />
                     </div>

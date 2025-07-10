@@ -16,20 +16,20 @@ export const workspace = createApi({
       query: ({ pageNo, pageSize }) => `/workspace/public?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
     getPrivateWorkspaces: builder.query({
-      query: () => `/workspace/private`,
+      query: ({ pageNo, pageSize }) => `/workspace/private/userWorkspaces?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
     joinPublicWorkspace: builder.mutation({
-      query: ({ userId }) => ({
+      query: (formData) => ({
         url: `/workspace/public/addUser`,
         method: "POST",
-        body: { userId },
+        body: formData,
       }),
     }),
     joinPrivateWorkspace: builder.mutation({
-      query: ({ workspaceId }) => ({
+      query: (formData) => ({
         url: `/workspace/private/addUser`,
         method: "POST",
-        body: { workspaceId },
+        body: formData,
       }),
     }),
     createPrivateWorkspace: builder.mutation({

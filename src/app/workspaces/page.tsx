@@ -16,7 +16,7 @@ export default function WorkspacePage() {
     data: dataPrivate,
     isLoading: isLoadingPrivate,
     refetch: refetchPrivate,
-  } = useGetPrivateWorkspacesQuery({});
+  } = useGetPrivateWorkspacesQuery({ pageNo: 1, pageSize: 10 });
 
   return (
     <div className="p-4">

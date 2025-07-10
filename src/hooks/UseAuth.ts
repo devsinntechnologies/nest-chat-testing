@@ -5,7 +5,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const auth = createApi({
   reducerPath: "auth",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/auth/`,
+    baseUrl: `${BASE_URL}/user/`,
     prepareHeaders: (headers, { endpoint }) => {
       // Only add the token if the endpoint is not 'login' or 'signup'
       if (endpoint !== "login" && endpoint !== "signup") {
@@ -68,10 +68,10 @@ export const auth = createApi({
       }),
     }),
     getUserProfile: builder.query({
-      query: () => `get-user-profile`,
+      query: () => `/profile`,
     }),
     getAllUsers: builder.query({
-      query: () => `getAllUsers`,
+      query: () => `/`,
     }),
     updateProfile: builder.mutation({
       query: (updateData) => ({

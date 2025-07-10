@@ -3,13 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Workspace } from "@/lib/types";
-import {
-  useJoinPublicWorkspaceMutation,
-  useJoinPrivateWorkspaceMutation,
-} from "@/hooks/UseWorkspace";
+import { useJoinPublicWorkspaceMutation } from "@/hooks/UseWorkspace";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import AddMemberDialog from "./AddMemberDialog";
 
 export function WorkspaceList({
   workspaces,
@@ -21,25 +19,19 @@ export function WorkspaceList({
   refetch: () => void;
 }) {
   const [joinPublic] = useJoinPublicWorkspaceMutation();
-  const [joinPrivate] = useJoinPrivateWorkspaceMutation();
   const userId = useSelector(
-    (state: RootState) => state.authSlice?.user?.id
+    (state: RootState) => state.authSlice.user?.id
   );
+  console.log(userId)
 
   if (isLoading) return <p>Loading…</p>;
 
-  const handleJoin = async (ws: Workspace) => {
-    const loadingId = toast.loading("Joining workspace…");
+  const handleJoinPublic = async ({ workspaceId }: { workspaceId: string }) => {
+    const loadingId = toast.loading("Joining to public workspace…");
     try {
-      let res;
-      if (ws.type === "public") {
-        res = await joinPublic({ userId }).unwrap();
-      } else {
-        res = await joinPrivate({ workspaceId: ws.id }).unwrap();
-      }
-
+      const formData = { userId, workspaceId }
+      const res = await joinPublic(formData).unwrap();
       toast.dismiss(loadingId);
-
       if (!res.success) {
         toast.error(res.message || "Failed to join workspace");
         return;
@@ -55,6 +47,7 @@ export function WorkspaceList({
 
   return (
     <div className="grid gap-4">
+      <p>{userId}</p>
       {workspaces.map((ws) => (
         <Card key={ws.id} className="p-4 flex flex-col gap-2">
           <div className="flex justify-between">
@@ -67,8 +60,12 @@ export function WorkspaceList({
                 Created by: <span className="font-medium">{ws.creator?.name}</span>
               </p>
             </div>
-
-            <Button onClick={() => handleJoin(ws)}>Join</Button>
+            {ws.creator.id === userId && <AddMemberDialog workspaceId={ws.id} refetch={refetch}/>}
+            {ws.type === 'public' && <Button
+              onClick={() => { handleJoinPublic({ workspaceId: ws.id }) }}
+            >
+              Join
+            </Button>}
           </div>
 
           {ws.members.length > 0 && (
