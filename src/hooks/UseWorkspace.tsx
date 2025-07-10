@@ -39,6 +39,14 @@ export const workspace = createApi({
         body: data,
       }),
     }),
+
+    createPublicWorkspace: builder.mutation({
+      query: (data) => ({
+        url: `/workspace/public/createWorkspace`,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -47,5 +55,6 @@ export const {
   useGetPrivateWorkspacesQuery,
   useJoinPublicWorkspaceMutation,
   useJoinPrivateWorkspaceMutation,
-  useCreatePrivateWorkspaceMutation
+  useCreatePrivateWorkspaceMutation,
+  useCreatePublicWorkspaceMutation
 } = workspace;

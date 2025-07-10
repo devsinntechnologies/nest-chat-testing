@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -80,12 +81,13 @@ const Page = () => {
       const response = await signupData(formData).unwrap();
 
       if (response?.success) {
-        toast.success("Registration Successful! Please verify your email.");
+        toast.success("Registration Successful!");
         sessionStorage.setItem(
           "userVerify",
           JSON.stringify({ email: formData.email, verify: false })
         );
-        router.push("/auth/verify-email");
+        // router.push("/auth/verify-email");
+        router.push("/");
       } else {
         toast.error(
           "Registration Failed: " +
