@@ -20,6 +20,9 @@ export const workspace = createApi({
     getPrivateWorkspaces: builder.query({
       query: ({ pageNo, pageSize }) => `/workspace/private/userWorkspaces?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
+    fetchWorkspaceChat: builder.query({
+      query: ({ id, pageNo, pageSize }) => `/workspace/chats/${id}?pageNo=${pageNo}&pageSize=${pageSize}`,
+    }),
     joinPublicWorkspace: builder.mutation({
       query: (formData) => ({
         url: `/workspace/public/addUser`,
@@ -58,5 +61,6 @@ export const {
   useJoinPublicWorkspaceMutation,
   useJoinPrivateWorkspaceMutation,
   useCreatePrivateWorkspaceMutation,
-  useCreatePublicWorkspaceMutation
+  useCreatePublicWorkspaceMutation,
+  useFetchWorkspaceChatQuery
 } = workspace;
