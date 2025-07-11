@@ -11,7 +11,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { getSocket } from "@/lib/socket";
+import { getWorkspaceSocket } from "@/lib/workspaceSocket";
 import { useFetchWorkspaceChatQuery } from "@/hooks/UseWorkspace";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BASE_IMAGE } from "@/lib/constants";
@@ -25,20 +25,42 @@ const WorkspaceChatPage = () => {
   const { id } = useParams();
   const [pageNo, setPageNo] = useState(1);
   const pageSize = 12;
+  const router = useRouter();
+  const senderId = useSelector((state: RootState) => state.authSlice?.user?.id);
+  const socket = getWorkspaceSocket();
   const [hasMore, setHasMore] = useState(true);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [expandedMessages, setExpandedMessages] = useState({});
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const [typingUsers, setTypingUsers] = useState<{ userId: string, name: string }[]>([]);
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    adjustTextareaHeight();
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", id);
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setTyping(false);
+      socket.emit("stopTyping", id);
+    }, 1500);
+  };
+
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const scrollableDiv = useRef(null);
-
-  const router = useRouter();
-  const senderId = useSelector((state: RootState) => state.authSlice?.user?.id);
-  const socket = getSocket();
 
   const { data: workspaceData, isLoading, isError } = useFetchWorkspaceChatQuery({ id, pageNo, pageSize });
   const [workspace, setWorkspace] = useState(null);
@@ -48,6 +70,27 @@ const WorkspaceChatPage = () => {
       (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
   }, []);
+
+  useEffect(() => {
+    socket.on('userTyping', ({ userId, name }) => {
+      setTypingUsers(prev => {
+        if (!prev.find(u => u.userId === userId)) {
+          return [...prev, { userId, name }];
+        }
+        return prev;
+      });
+    });
+
+    socket.on('userStopTyping', ({ userId }) => {
+      setTypingUsers(prev => prev.filter(u => u.userId !== userId));
+    });
+
+    return () => {
+      socket.off('userTyping');
+      socket.off('userStopTyping');
+    };
+  }, [socket]);
+
 
   useEffect(() => {
     if (workspaceData?.data) {
@@ -69,7 +112,9 @@ const WorkspaceChatPage = () => {
   }, [workspaceData, pageNo, sortMessagesByTimestamp]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   };
 
   const fetchData = () => {
@@ -78,20 +123,22 @@ const WorkspaceChatPage = () => {
 
   useEffect(() => {
     if (!id || !senderId) return;
-    socket.emit("joinWorkspace", id);
+    const workspaceId = id;
+    socket.emit("joinWorkspace", workspaceId);
     return () => socket.emit("leaveWorkspace", id);
   }, [id, senderId, socket]);
 
   useEffect(() => {
-    socket.on("receiveWorkspaceMessage", ({ message }) => {
+    socket.on("receiveMessage", ({ message }) => {
       if (message?.message_text && message?.timestamp) {
+        console.log(message?.message_text && message?.timestamp, message?.message_text, message?.timestamp)
         setMessages((prev) => sortMessagesByTimestamp([...prev, message]));
         scrollToBottom();
       }
     });
 
     return () => {
-      socket.off("receiveWorkspaceMessage");
+      socket.off("receiveMessage");
     };
   }, [socket, sortMessagesByTimestamp]);
 
@@ -104,9 +151,9 @@ const WorkspaceChatPage = () => {
       timestamp: new Date().toISOString(),
       type: "workspace",
     };
-    socket.emit("sendMessageToWorkspace", message);
-    setInput("");
+    socket.emit("sendMessage", message);
     scrollToBottom();
+    setInput("");
   };
 
   const toggleExpand = (index) => {
@@ -145,7 +192,23 @@ const WorkspaceChatPage = () => {
             </Avatar>
             <div>
               <h2 className="text-lg font-semibold">{workspace?.name}</h2>
-              <p className="text-xs text-muted-foreground">Workspace Chat</p>
+              <div className="text-xs text-muted-foreground mt-1 transition-opacity duration-300">
+                {typingUsers.length === 0 && (
+                  <p>Workspace Chat</p>
+                )}
+
+                {typingUsers.length === 1 && (
+                  <p className="animate-pulse">{typingUsers[0].name} is typing…</p>
+                )}
+
+                {typingUsers.length === 2 && (
+                  <p className="animate-pulse">{typingUsers[0].name} and {typingUsers[1].name} are typing…</p>
+                )}
+
+                {typingUsers.length > 2 && (
+                  <p className="animate-pulse">Several people are typing…</p>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -160,7 +223,7 @@ const WorkspaceChatPage = () => {
           scrollableTarget="scrollableDiv"
           loader={<Skeleton className="h-6 w-1/2 mx-auto my-2" />}
         >
-          <div ref={messagesEndRef} />
+          <div />
           {messages.map((msg, index) => {
             const isSender = msg.SenderId === senderId;
             const isExpanded = expandedMessages[index];
@@ -168,17 +231,28 @@ const WorkspaceChatPage = () => {
 
             return (
               <div
-                key={msg.id}
-                className={`flex mb-3 ${isSender ? "justify-end" : "justify-start"}`}
+                ref={messagesEndRef}
+                key={msg.id || `msg-${index}`}
+                className={`flex mb-3 items-end ${isSender ? "justify-end" : "justify-start"}`}
               >
+                {!isSender && <Avatar className="w-10 h-10 mr-1">
+                  <AvatarImage
+                    src={
+                      msg.Sender?.imageUrl ? `${BASE_IMAGE}${msg.Sender.imageUrl}` : ""
+                    }
+                    alt={msg.Sender?.name || "User"}
+                  />
+                  <AvatarFallback className="bg-primary text-white">
+                    {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>}
                 <div
-                  className={`p-3 text-sm rounded-2xl max-w-[75%] ${
-                    isSender
-                      ? "bg-primary text-white rounded-br-none"
-                      : "bg-muted text-black rounded-bl-none"
-                  }`}
+                  className={`p-3 text-sm rounded-2xl max-w-[75%] ${isSender
+                    ? "bg-primary text-white rounded-br-none"
+                    : "bg-muted text-black rounded-bl-none"
+                    }`}
                 >
-                  <p>
+                  <p className="whitespace-pre-wrap break-words">
                     {isExpanded || msg.message_text.length <= maxChars
                       ? msg.message_text
                       : msg.message_text.slice(0, maxChars) + "..."}
@@ -186,7 +260,8 @@ const WorkspaceChatPage = () => {
                   {msg.message_text.length > maxChars && (
                     <button
                       onClick={() => toggleExpand(index)}
-                      className="text-xs mt-1 text-primary"
+                      className="text-xs mt-1 cursor-pointer text-inherit"
+
                     >
                       {isExpanded ? "See less" : "See more"}
                     </button>
@@ -195,6 +270,17 @@ const WorkspaceChatPage = () => {
                     {new Date(msg.timestamp).toLocaleTimeString()}
                   </div>
                 </div>
+                {isSender && <Avatar className="w-10 h-10 ml-1">
+                  <AvatarImage
+                    src={
+                      msg.Sender?.imageUrl ? `${BASE_IMAGE}${msg.Sender.imageUrl}` : ""
+                    }
+                    alt={msg.Sender?.name || "User"}
+                  />
+                  <AvatarFallback className="bg-primary text-white">
+                    {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>}
               </div>
             );
           })}
@@ -219,10 +305,7 @@ const WorkspaceChatPage = () => {
         <textarea
           ref={textareaRef}
           value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            adjustTextareaHeight();
-          }}
+          onChange={handleInputChange}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -236,11 +319,10 @@ const WorkspaceChatPage = () => {
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className={`p-3 rounded-xl ${
-            input.trim()
-              ? "bg-primary text-white hover:bg-primary/90"
-              : "bg-gray-200 text-gray-400"
-          }`}
+          className={`p-3 rounded-xl ${input.trim()
+            ? "bg-primary text-white hover:bg-primary/90"
+            : "bg-gray-200 text-gray-400"
+            }`}
         >
           <SendHorizonal size={20} />
         </button>

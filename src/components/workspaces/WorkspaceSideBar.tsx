@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Lock, MessageSquareWarningIcon, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter, useParams } from "next/navigation";
-import { getSocket } from "@/lib/socket";
+import { getWorkspaceSocket } from "@/lib/workspaceSocket";
 import { useSelector } from "react-redux";
 import { BASE_IMAGE } from "@/lib/constants";
 import SearchBar from "./SearchBar";
@@ -13,7 +13,6 @@ import { Skeleton } from "../ui/skeleton";
 import { RootState } from "@/store/store";
 import { useGetPublicWorkspacesQuery, useGetPrivateWorkspacesQuery } from "@/hooks/UseWorkspace";
 import Image from "next/image";
-// import EmptyInbox from "../misc/EmptyInbox";
 
 
 const WorkspaceSideBar = () => {
@@ -82,7 +81,7 @@ const WorkspaceSideBar = () => {
   }, []);
 
   useEffect(() => {
-    const socket = getSocket();
+    const socket = getWorkspaceSocket();
     if (!socket) return;
 
     // Handle incoming new messages

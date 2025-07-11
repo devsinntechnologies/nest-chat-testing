@@ -2,7 +2,6 @@
 
 import { WorkspaceList } from "@/components/workspaces/WorkspaceList";
 import { useGetPublicWorkspacesQuery, useGetPrivateWorkspacesQuery } from "@/hooks/UseWorkspace";
-// import { Button } from "@/components/ui/button";
 import CreatePrivateWorkspaceDialog from "@/components/workspaces/CreatePrivateWorkspaceDialog";
 import CreatePublicWorkspaceDialog from "@/components/workspaces/CreatePublicWorkspaceDialog";
 
