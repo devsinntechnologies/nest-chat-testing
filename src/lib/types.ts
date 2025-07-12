@@ -31,3 +31,31 @@ export interface Workspace {
   creator: User;
   members: Member[];
 }
+
+export interface MessageProps {
+  id: string;
+  msg: {
+    id: string;
+    SenderId: string;
+    message_text: string;
+    timestamp: string;
+    isRead?: boolean;
+    allRead: boolean;
+    Sender?: {
+      name?: string;
+      imageUrl?: string;
+    };
+    messageReads?: {
+      userId: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        imageUrl: string;
+      };
+      readAt: string;
+    }[];
+  };
+  idx: number;
+  socket: any;
+};
