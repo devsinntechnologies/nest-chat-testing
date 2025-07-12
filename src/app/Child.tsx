@@ -68,7 +68,7 @@ export default function Child({ children }: ChildProps) {
     }
   }, [online, dispatch]);
 
-  const noHeaderRoutes = ["/auth", "/seller", "/messages"];
+  const noHeaderRoutes = ["/auth", "/seller", "/messages", "/workspaces"];
   const noContainerize = ["/auth", "/messages"];
 
   const showHeader = !noHeaderRoutes.some((route) =>

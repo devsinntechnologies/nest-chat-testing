@@ -33,7 +33,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <title>Next JS Official</title>
         <meta name="theme-color" content="#DB7807" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/icon-192x192.png" />
         <meta name="theme-color" content="#DB7807" />
         {/* <link rel="icon" type="image/svg+xml" href="/icon.svg" /> */}
       </head>

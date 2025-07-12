@@ -285,7 +285,7 @@ console.log("Unread texts:", unreadTexts);
         )}
 
 
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="size-0"/>
       </div>
 
       {/* Input */}

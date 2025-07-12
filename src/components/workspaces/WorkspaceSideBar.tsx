@@ -191,7 +191,8 @@ const WorkspaceSideBar = () => {
                 {combinedWorkspaces.map((ws) => {
                   const lastMsg = ws.lastMessage?.message_text || "No messages yet";
                   const timestamp = ws.lastMessage?.timestamp;
-
+                  const unreadedCount = ws.unreadedCount
+                  const isSender = ws.lastMessage?.SenderId
                   return (
                     <div
                       key={ws.id}
@@ -230,9 +231,11 @@ const WorkspaceSideBar = () => {
                       </div>
 
                       {/* Timestamp */}
-                      <div className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        {timestamp ? new Date(timestamp).toLocaleDateString() : ""}
-                      </div>
+                    <MessageTimestamp
+                      timestamp={timestamp}
+                      unreadedCount={unreadedCount}
+                      isSender={isSender}
+                    />
                     </div>
                   );
                 })}
@@ -256,7 +259,7 @@ const WorkspaceSideBar = () => {
   );
 };
 
-const MessageTimestamp = ({ timestamp, unreadMessages, isSender }) => {
+const MessageTimestamp = ({ timestamp, unreadedCount, isSender }) => {
   const formatTimestamp = (timestamp) => {
     const messageDate = new Date(timestamp);
     const today = new Date();
@@ -284,13 +287,12 @@ const MessageTimestamp = ({ timestamp, unreadMessages, isSender }) => {
 
     return `${messageDate.toLocaleDateString()}`;
   };
-
   return (
     <div className="flex items-center justify-center gap-1 flex-col text-center text-xs">
       <h1>{formatTimestamp(timestamp)}</h1>
-      {!isSender && unreadMessages > 0 && (
-        <div className="p-1 size-6 text-white bg-primary rounded-full">
-          {unreadMessages}
+      { unreadedCount > 0 && (
+        <div className="p-1 min-w-6 h-6 text-white bg-primary rounded-full">
+          {unreadedCount}
         </div>
       )}
     </div>
