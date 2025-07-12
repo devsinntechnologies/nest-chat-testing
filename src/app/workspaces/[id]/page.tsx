@@ -43,12 +43,31 @@ const WorkspaceChatPage = () => {
   const {
     data: workspaceData,
     isLoading,
-  } = useFetchWorkspaceChatQuery({ id, pageNo, pageSize });
+  } = useFetchWorkspaceChatQuery(
+    { id, pageNo, pageSize },
+    { refetchOnMountOrArgChange: true }
+  );
+
 
   const workspace = workspaceData?.data;
   const totalCount = workspaceData?.totalCount || 0;
 
   const hasMore = messages.length < totalCount;
+
+  const unread = messages.some(
+  m => !m.messageReads?.some(r => r.userId === senderId)
+);
+
+
+ const unreadMessages = messages.filter(
+  m => !m.messageReads?.some(r => r.userId === senderId)
+);
+
+console.log("Unread messages:", unreadMessages);
+
+const unreadTexts = unreadMessages.map(m => m.message_text);
+
+console.log("Unread texts:", unreadTexts);
 
   const sortMessages = useCallback(
     (msgs) =>
@@ -87,10 +106,10 @@ const WorkspaceChatPage = () => {
     const value = e.target.value;
     setInput(value);
     adjustTextareaHeight();
-    if(!typing){
+    if (!typing) {
       socket.emit("typing", id);
-    setTyping(true)
-  }
+      setTyping(true)
+    }
 
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
 
@@ -105,7 +124,7 @@ const WorkspaceChatPage = () => {
   const handleScroll = () => {
     const el = scrollableDiv.current;
     if (!el) return;
-    const threshold = 50;
+    const threshold = 0;
     const atBottom =
       el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
     setIsAtBottom(atBottom);
@@ -116,6 +135,12 @@ const WorkspaceChatPage = () => {
     socket.emit("joinWorkspace", id);
     return () => socket.emit("leaveWorkspace", id);
   }, [id, senderId, socket]);
+
+  useEffect(() => {
+    if (workspace && unread && !isAtBottom) {
+      scrollToBottom();
+    }
+  }, [isAtBottom, unread, workspace]);
 
   useEffect(() => {
     const onTyping = ({ userId, name }) => {
@@ -141,12 +166,52 @@ const WorkspaceChatPage = () => {
   useEffect(() => {
     const onMessage = ({ message }) => {
       setMessages((prev) => sortMessages([...prev, message]));
-      if (isAtBottom) scrollToBottom();
+      scrollToBottom();
     };
 
+    const onMessageReaded = ({ messageId, userId, readAt, user }) => {
+      console.log("onMessageReaded payload:", { messageId, userId, readAt, user });
+
+      setMessages((prev) => {
+        const next = sortMessages(
+          prev.map((msg) => {
+            if (msg.id !== messageId) return msg;
+
+            const alreadyRead = msg.messageReads?.some(r => r.userId === userId);
+
+            if (!alreadyRead) {
+              console.log("✅ Writing new read for user", userId, "on message", messageId);
+
+              return {
+                ...msg,
+                messageReads: [
+                  ...(msg.messageReads || []),
+                  { userId, readAt, user },
+                ],
+              };
+            } else {
+              console.log("🚫 Already marked as read for", userId, "on message", messageId);
+            }
+
+            return msg;
+          })
+        );
+
+        console.log("📝 Next messages state will be:", next);
+        return next;
+      });
+
+      scrollToBottom();
+    };
+
+
     socket.on("receiveMessage", onMessage);
-    return () => socket.off("receiveMessage", onMessage);
-  }, [socket, sortMessages, isAtBottom]);
+    socket.on("messageRead", onMessageReaded);
+    return () => {
+      socket.off("receiveMessage", onMessage);
+      socket.off("messageRead", onMessageReaded);
+    }
+  }, [socket, sortMessages]);
 
   // New page of data
   useEffect(() => {
@@ -210,7 +275,7 @@ const WorkspaceChatPage = () => {
           ))}
         </InfiniteScroll>
 
-        {!isAtBottom &&  (
+        {!isAtBottom && unread && (
           <Button
             onClick={scrollToBottom}
             className="fixed bottom-20 right-4 bg-primary text-white rounded-full shadow-md"
@@ -218,6 +283,7 @@ const WorkspaceChatPage = () => {
             New Message
           </Button>
         )}
+
 
         <div ref={messagesEndRef} />
       </div>
@@ -256,8 +322,8 @@ const WorkspaceChatPage = () => {
           onClick={handleSend}
           disabled={!input.trim()}
           className={`p-3 rounded-xl ${input.trim()
-              ? "bg-primary text-white hover:bg-primary/90"
-              : "bg-gray-200 text-gray-400"
+            ? "bg-primary text-white hover:bg-primary/90"
+            : "bg-gray-200 text-gray-400"
             }`}
         >
           <SendHorizonal size={20} />

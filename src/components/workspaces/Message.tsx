@@ -25,14 +25,16 @@ const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
     triggerOnce: true,
   });
 
-  useEffect(() => {
-    if (inView && !msg.isRead) {
-      socket.emit("readMessage", {
-        messageId: msg.id,
-        workspaceId: id,
-      });
-    }
-  }, [inView, msg.id, msg.isRead, id, socket]);
+const alreadyReadByMe = msg.messageReads?.some(r => r.userId === senderId);
+
+useEffect(() => {
+  if (inView && !alreadyReadByMe) {
+    socket.emit("readMessage", {
+      messageId: msg.id,
+      workspaceId: id,
+    });
+  }
+}, [inView, alreadyReadByMe, msg.id, id, socket]);
 
   const handleToggleExpand = () => setExpanded(!expanded);
 
