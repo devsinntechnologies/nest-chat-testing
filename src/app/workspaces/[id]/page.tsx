@@ -44,7 +44,7 @@ const WorkspaceChatPage = () => {
     data: workspaceData,
     isLoading,
   } = useFetchWorkspaceChatQuery(
-    { id, pageNo, pageSize },
+    { id },
     { refetchOnMountOrArgChange: true }
   );
 
