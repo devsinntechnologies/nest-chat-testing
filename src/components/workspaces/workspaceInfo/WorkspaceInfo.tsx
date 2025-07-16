@@ -52,10 +52,14 @@ const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetc
         <div className="relative">
           <Avatar className="w-24 h-24 ring-2 ring-primary shadow-md">
             <AvatarImage
-              src={`${BASE_IMAGE}/uploads/users/87588d1a8028117e68ace56d664661df.png`}
+              src={
+                workspace?.imageUrl
+                  ? `${BASE_IMAGE}${workspace.imageUrl}`
+                  : undefined
+              }
             />
-            <AvatarFallback className="text-xl">
-              {name?.[0]?.toUpperCase() || '?'}
+            <AvatarFallback>
+              {workspace?.name?.charAt(0) || '?'}
             </AvatarFallback>
           </Avatar>
 

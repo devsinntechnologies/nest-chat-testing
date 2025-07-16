@@ -252,11 +252,11 @@ const WorkspaceSideBar = () => {
                     className="flex items-center gap-4 py-3 px-3 cursor-pointer rounded-xl hover:bg-muted transition"
                   >
                     <div className="relative">
-                      {ws.creator?.imageUrl ? (
+                      {ws?.imageUrl ? (
                         <Image
                           width={100}
                           height={100}
-                          src={`${BASE_IMAGE}${ws.creator.imageUrl}`}
+                          src={`${BASE_IMAGE}${ws.imageUrl}`}
                           alt="avatar"
                           className="w-12 h-12 rounded-full object-cover"
                         />
