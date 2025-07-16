@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Workspace } from "@/lib/types";
-import { useJoinPublicWorkspaceMutation } from "@/hooks/UseWorkspace";
+import { useJoinWorkspaceMutation } from "@/hooks/UseWorkspace";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -18,7 +18,7 @@ export function WorkspaceList({
   isLoading: boolean;
   refetch: () => void;
 }) {
-  const [joinPublic] = useJoinPublicWorkspaceMutation();
+  const [joinPublic] = useJoinWorkspaceMutation();
   const userId = useSelector(
     (state: RootState) => state.authSlice.user?.id
   );

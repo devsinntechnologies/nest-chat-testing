@@ -1,10 +1,7 @@
 'use client';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
-import MembersDialog from '../MembersDialog';
+import MembersDialog from './MembersDialog';
 import WorkspaceInfo from './WorkspaceInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -31,7 +28,7 @@ const WorkspaceInfos: React.FC<WorkspaceInfosProps> = ({
             <TabsTrigger value="member">Members</TabsTrigger>
           </TabsList>
           <TabsContent value="member">
-            <MembersDialog id={workspace.id} />
+            <MembersDialog id={workspace.id} refetch={refetchWorkspace}/>
           </TabsContent>
           <TabsContent value="info">
             <WorkspaceInfo workspace={workspace} refetchWorkspace={refetchWorkspace}/>

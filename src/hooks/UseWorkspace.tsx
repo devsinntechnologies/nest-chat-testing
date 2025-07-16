@@ -26,16 +26,9 @@ export const workspace = createApi({
     getAllMembers: builder.query({
       query: ({ id, pageNo, pageSize }) => `/members/${id}?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
-    joinPublicWorkspace: builder.mutation({
+    joinWorkspace: builder.mutation({
       query: (formData) => ({
-        url: `/public/addUser`,
-        method: "POST",
-        body: formData,
-      }),
-    }),
-    joinPrivateWorkspace: builder.mutation({
-      query: (formData) => ({
-        url: `/private/addUser`,
+        url: `/addUser`,
         method: "POST",
         body: formData,
       }),
@@ -68,18 +61,33 @@ export const workspace = createApi({
         body: formData,
       }),
     }),
+   updateMembertype: builder.mutation({
+  query: ({ id, type }) => ({
+    url: `/updateMembertype/${id}`,
+    method: "PATCH",
+    body: { type }, // send updated type in body
+  }),
+}),
+
+    deleteMemberById: builder.mutation({
+      query: (id) => ({
+        url: `/member/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
 export const {
   useGetPublicWorkspacesQuery,
   useGetPrivateWorkspacesQuery,
-  useJoinPublicWorkspaceMutation,
-  useJoinPrivateWorkspaceMutation,
+  useJoinWorkspaceMutation,
   useCreatePrivateWorkspaceMutation,
   useCreatePublicWorkspaceMutation,
   useFetchWorkspaceChatQuery,
   useGetAllMembersQuery,
   useUpdateWorkspaceMutation,
-  useUpdateWorkspacePictureMutation
+  useUpdateWorkspacePictureMutation,
+  useDeleteMemberByIdMutation,
+  useUpdateMembertypeMutation
 } = workspace;

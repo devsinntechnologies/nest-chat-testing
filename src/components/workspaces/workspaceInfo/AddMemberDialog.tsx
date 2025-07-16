@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { useJoinPrivateWorkspaceMutation } from "@/hooks/UseWorkspace";
+import { useJoinWorkspaceMutation } from "@/hooks/UseWorkspace";
 import { useGetAllUsersQuery } from "@/hooks/UseAuth";
 
 export default function AddMemberDialog({
@@ -22,7 +22,7 @@ export default function AddMemberDialog({
   );
 
   const { data, isLoading, isError } = useGetAllUsersQuery({});
-  const [joinPrivate] = useJoinPrivateWorkspaceMutation();
+  const [joinPrivate] = useJoinWorkspaceMutation();
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);

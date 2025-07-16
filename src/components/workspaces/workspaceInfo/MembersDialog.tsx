@@ -1,17 +1,26 @@
 'use client';
 
-import { useGetAllMembersQuery } from '@/hooks/UseWorkspace';
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Badge } from '../ui/badge';
-import { Skeleton } from '../ui/skeleton';
+import { 
+  useDeleteMemberByIdMutation, 
+  useGetAllMembersQuery, 
+  useUpdateMembertypeMutation 
+} from '@/hooks/UseWorkspace';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BASE_IMAGE } from '@/lib/constants';
 import { MoreHorizontal } from 'lucide-react';
 import React, { useState } from 'react';
+import AddMemberDialog from './AddMemberDialog';
+import { toast } from 'sonner';
 
-const MembersDialog = ({ id }: { id: string }) => {
+const MembersDialog = ({ id, refetch }: { id: string, refetch: () => void }) => {
   const [pageNo, setPageNo] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const [updateMemberType, { isLoading: updatingType }] = useUpdateMembertypeMutation();
+  const [deleteMember, { isLoading: deletingMember }] = useDeleteMemberByIdMutation();
 
   const pageSize = 12;
   const { data, isLoading, isError } = useGetAllMembersQuery({ id, pageNo, pageSize });
@@ -20,9 +29,34 @@ const MembersDialog = ({ id }: { id: string }) => {
   const totalCount = data?.total || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  const handleMakeAdmin = async (memberId: string) => {
+    setOpenMenuId(null);
+    try {
+      await updateMemberType({ id: memberId }).unwrap();
+      toast.success('Member promoted to Admin successfully');
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to make member Admin');
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    setOpenMenuId(null);
+    try {
+      await deleteMember({ id: memberId }).unwrap();
+      toast.success('Member removed successfully');
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to remove member');
+    }
+  };
+
   return (
     <div className="w-full space-y-3">
-      <h2 className="text-xl font-semibold">Workspace Members</h2>
+      <div className='w-full flex items-center justify-between'>
+        <h2 className="text-xl font-semibold">Workspace Members</h2>
+        <AddMemberDialog workspaceId={id} refetch={refetch} />
+      </div>
 
       {isLoading ? (
         <div className="space-y-3">
@@ -76,22 +110,18 @@ const MembersDialog = ({ id }: { id: string }) => {
               {openMenuId === member.id && (
                 <div className="absolute right-3 top-12 bg-popover border rounded shadow z-50 w-40">
                   <button
-                    onClick={() => {
-                      setOpenMenuId(null);
-                      // TODO: make admin logic
-                    }}
+                    onClick={() => handleMakeAdmin(member.member[0].id)}
                     className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                    disabled={updatingType}
                   >
-                    Make Admin
+                    {updatingType ? 'Promoting…' : 'Make Admin'}
                   </button>
                   <button
-                    onClick={() => {
-                      setOpenMenuId(null);
-                      // TODO: remove member logic
-                    }}
+                    onClick={() => handleRemoveMember(member.member[0].id)}
                     className="w-full text-left px-3 py-2 hover:bg-accent text-sm text-red-600"
+                    disabled={deletingMember}
                   >
-                    Remove Member
+                    {deletingMember ? 'Removing…' : 'Remove Member'}
                   </button>
                 </div>
               )}
