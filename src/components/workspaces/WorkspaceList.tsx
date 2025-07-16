@@ -7,7 +7,7 @@ import { useJoinPublicWorkspaceMutation } from "@/hooks/UseWorkspace";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import AddMemberDialog from "./AddMemberDialog";
+import AddMemberDialog from "./workspaceInfo/AddMemberDialog";
 
 export function WorkspaceList({
   workspaces,
@@ -22,7 +22,6 @@ export function WorkspaceList({
   const userId = useSelector(
     (state: RootState) => state.authSlice.user?.id
   );
-  console.log(userId)
 
   if (isLoading) return <p>Loading…</p>;
 

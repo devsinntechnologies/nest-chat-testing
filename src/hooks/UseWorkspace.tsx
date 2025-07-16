@@ -47,11 +47,17 @@ export const workspace = createApi({
         body: data,
       }),
     }),
-
     createPublicWorkspace: builder.mutation({
       query: (data) => ({
         url: `/public/createWorkspace`,
         method: "POST",
+        body: data,
+      }),
+    }),
+    updateWorkspace: builder.mutation({
+      query: (data) => ({
+        url: `/${data.id}`,
+        method: "PATCH",
         body: data,
       }),
     }),
@@ -66,5 +72,6 @@ export const {
   useCreatePrivateWorkspaceMutation,
   useCreatePublicWorkspaceMutation,
   useFetchWorkspaceChatQuery,
-  useGetAllMembersQuery
+  useGetAllMembersQuery,
+  useUpdateWorkspaceMutation
 } = workspace;

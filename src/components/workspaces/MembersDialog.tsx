@@ -1,33 +1,19 @@
-'use client'
+'use client';
 
 import { useGetAllMembersQuery } from '@/hooks/UseWorkspace';
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '../ui/avatar';
 import { Button } from '../ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import { BASE_IMAGE } from '@/lib/constants';
-import { Badge } from '../ui/badge';
+import { MoreHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
 
-interface MembersDialogProps {
-  id: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const MembersDialog: React.FC<MembersDialogProps> = ({ id, open, onOpenChange }) => {
+const MembersDialog = ({ id }: { id: string }) => {
   const [pageNo, setPageNo] = useState(1);
-  const pageSize = 12;
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  const pageSize = 12;
   const { data, isLoading, isError } = useGetAllMembersQuery({ id, pageNo, pageSize });
 
   const members = data?.data || [];
@@ -35,106 +21,111 @@ const MembersDialog: React.FC<MembersDialogProps> = ({ id, open, onOpenChange })
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-primary">
-            Workspace Members
-          </DialogTitle>
-        </DialogHeader>
+    <div className="w-full space-y-3">
+      <h2 className="text-xl font-semibold">Workspace Members</h2>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex gap-4 items-center">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="w-1/2 h-4 rounded" />
-                  <Skeleton className="w-1/3 h-3 rounded" />
+      {isLoading ? (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="w-full h-14 rounded-lg" />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="text-sm text-red-500">Failed to load members.</p>
+      ) : (
+        <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+          {members.map((member: any) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between px-3 py-2 rounded-lg border border-border hover:bg-accent relative"
+            >
+              <div className="flex items-center gap-3">
+                <Avatar className="w-9 h-9 ring ring-muted">
+                  <AvatarImage
+                    src={member.imageUrl ? `${BASE_IMAGE}${member.imageUrl}` : undefined}
+                  />
+                  <AvatarFallback>{member.name?.[0]?.toUpperCase() || '?'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium truncate">{member.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : isError ? (
-          <div className="text-sm text-red-500 bg-red-50 p-3 rounded border border-red-200">
-            Failed to load members. Please try again later.
-          </div>
-        ) : members.length === 0 ? (
-          <div className="text-sm text-muted-foreground p-3 text-center">
-            No members found in this workspace.
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-            {members.map((member: any) => (
-              <div
-                key={member.id}
-                className="flex gap-3 items-center p-2 rounded-lg hover:bg-accent transition-colors border border-border"
-              >
-                <Avatar className="w-10 h-10 ring-1 ring-muted">
-                  <AvatarImage
-                    src={
-                      member.imageUrl
-                        ? `${BASE_IMAGE}${member.imageUrl}`
-                        : undefined
-                    }
-                  />
-                  <AvatarFallback>
-                    {member.name?.charAt(0).toUpperCase() || '?'}
-                  </AvatarFallback>
-                </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-foreground">
-                    {member.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {member.email}
-                  </p>
-                </div>
-
+              <div className="flex items-center gap-2">
                 <Badge
                   variant={
-                    member.member?.[0]?.type === 'member'
-                      ? 'outline'
-                      : 'default'
+                    member.member?.[0]?.type === 'member' ? 'outline' : 'default'
                   }
                   className="text-xs capitalize"
                 >
                   {member.member?.[0]?.type || 'member'}
                 </Badge>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {totalCount > pageSize && (
-          <div className="flex justify-between items-center mt-4 border-t pt-3">
-            <p className="text-xs text-muted-foreground">
-              Page <span className="font-medium">{pageNo}</span> of <span className="font-medium">{totalPages}</span>
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPageNo((p) => Math.max(1, p - 1))}
-                disabled={pageNo === 1}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPageNo((p) => Math.min(totalPages, p + 1))}
-                disabled={pageNo >= totalPages}
-              >
-                Next
-              </Button>
+                <button
+                  onClick={() =>
+                    setOpenMenuId(openMenuId === member.id ? null : member.id)
+                  }
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+              </div>
+
+              {/* Menu */}
+              {openMenuId === member.id && (
+                <div className="absolute right-3 top-12 bg-popover border rounded shadow z-50 w-40">
+                  <button
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      // TODO: make admin logic
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                  >
+                    Make Admin
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      // TODO: remove member logic
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-accent text-sm text-red-600"
+                  >
+                    Remove Member
+                  </button>
+                </div>
+              )}
             </div>
+          ))}
+        </div>
+      )}
+
+      {totalCount > pageSize && (
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-xs text-muted-foreground">
+            Page {pageNo} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pageNo === 1}
+              onClick={() => setPageNo((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pageNo >= totalPages}
+              onClick={() => setPageNo((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </Button>
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+    </div>
   );
 };
 

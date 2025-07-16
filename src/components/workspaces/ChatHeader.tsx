@@ -17,13 +17,14 @@ import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
 import MembersDialog from './MembersDialog';
 import WorkspaceInfo from './WorkspaceInfo';
+import WorkspaceInfos from './workspaceInfo/WorkspaceInfos';
 
 interface ChatHeaderProps {
   workspace: any;
   isLoading: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoading }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoading, refetchWorkspace }) => {
   const userId = useSelector((state: RootState) => state.authSlice.user.id);
   const router = useRouter();
   const socket = getWorkspaceSocket();
@@ -79,13 +80,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoa
             <Avatar>
               <AvatarImage
                 src={
-                  workspace?.creator?.imageUrl
-                    ? `${BASE_IMAGE}${workspace.creator.imageUrl}`
+                  workspace?.imageUrl
+                    ? `${BASE_IMAGE}${workspace.imageUrl}`
                     : undefined
                 }
               />
               <AvatarFallback>
-                {workspace?.creator?.name?.charAt(0) || '?'}
+                {workspace?.name?.charAt(0) || '?'}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -109,31 +110,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoa
             View Info
           </DropdownMenuItem>
           <DropdownMenuItem>Search Messages</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setMembersOpen(true)}>
-            View Members
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {isCreator ? (
-            <>
-              <DropdownMenuItem onClick={() => router.push(`/workspaces/${workspace?.id}/edit`)}>
-                Edit Workspace
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                Delete Workspace
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <DropdownMenuItem className="text-red-600">
-              Leave Workspace
-            </DropdownMenuItem>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
       {workspace && (
         <>
-          <WorkspaceInfo open={infoOpen} onOpenChange={setInfoOpen} workspace={workspace} />
-          <MembersDialog id={workspace.id} open={membersOpen} onOpenChange={setMembersOpen} />
+          <WorkspaceInfos open={infoOpen} onOpenChange={setInfoOpen} workspace={workspace} refetchWorkspace={refetchWorkspace} />
         </>
       )}
     </div>

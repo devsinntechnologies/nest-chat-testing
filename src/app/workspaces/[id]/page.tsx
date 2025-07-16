@@ -43,6 +43,7 @@ const WorkspaceChatPage = () => {
   const {
     data: workspaceData,
     isLoading,
+    refetch
   } = useFetchWorkspaceChatQuery(
     { id },
     { refetchOnMountOrArgChange: true }
@@ -229,7 +230,7 @@ const WorkspaceChatPage = () => {
 
   return (
     <div className="flex flex-col h-screen w-full border-l">
-      <ChatHeader workspace={workspace} isLoading={isLoading}/>
+      <ChatHeader workspace={workspace} isLoading={isLoading} refetchWorkspace={refetch}/>
       {/* Messages */}
       <div
         className="flex-1 overflow-y-auto p-4"
