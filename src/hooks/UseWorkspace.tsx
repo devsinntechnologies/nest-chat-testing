@@ -61,6 +61,13 @@ export const workspace = createApi({
         body: data,
       }),
     }),
+    updateWorkspacePicture: builder.mutation({
+      query: ({id, formData}) => ({
+        url: `/updateWorkspacePicture/${id}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
 });
 
@@ -73,5 +80,6 @@ export const {
   useCreatePublicWorkspaceMutation,
   useFetchWorkspaceChatQuery,
   useGetAllMembersQuery,
-  useUpdateWorkspaceMutation
+  useUpdateWorkspaceMutation,
+  useUpdateWorkspacePictureMutation
 } = workspace;
