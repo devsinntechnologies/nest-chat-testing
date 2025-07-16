@@ -18,6 +18,7 @@ import { BASE_IMAGE } from "@/lib/constants";
 import { useInView } from "react-intersection-observer";
 import Message from "@/components/workspaces/Message";
 import { Button } from "@/components/ui/button";
+import ChatHeader from "@/components/workspaces/ChatHeader";
 
 const WorkspaceChatPage = () => {
   const { id } = useParams();
@@ -31,7 +32,6 @@ const WorkspaceChatPage = () => {
 
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState([]);
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -50,24 +50,25 @@ const WorkspaceChatPage = () => {
 
 
   const workspace = workspaceData?.data;
+  console.log(workspace, "abc11")
   const totalCount = workspaceData?.totalCount || 0;
 
   const hasMore = messages.length < totalCount;
 
   const unread = messages.some(
-  m => !m.messageReads?.some(r => r.userId === senderId)
-);
+    m => !m.messageReads?.some(r => r.userId === senderId)
+  );
 
 
- const unreadMessages = messages.filter(
-  m => !m.messageReads?.some(r => r.userId === senderId)
-);
+  const unreadMessages = messages.filter(
+    m => !m.messageReads?.some(r => r.userId === senderId)
+  );
 
-console.log("Unread messages:", unreadMessages);
+  console.log("Unread messages:", unreadMessages);
 
-const unreadTexts = unreadMessages.map(m => m.message_text);
+  const unreadTexts = unreadMessages.map(m => m.message_text);
 
-console.log("Unread texts:", unreadTexts);
+  console.log("Unread texts:", unreadTexts);
 
   const sortMessages = useCallback(
     (msgs) =>
@@ -228,33 +229,7 @@ console.log("Unread texts:", unreadTexts);
 
   return (
     <div className="flex flex-col h-screen w-full border-l">
-      {/* Header */}
-      <div className="flex items-center gap-2 p-4 bg-white border-b shadow-md">
-        <button onClick={() => router.push("/workspaces")}>
-          <ArrowLeft size={20} />
-        </button>
-        {isLoading ? (
-          <Skeleton className="w-12 h-12 rounded-full" />
-        ) : (
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage src={`${BASE_IMAGE}${workspace?.creator?.imageUrl}`} />
-              <AvatarFallback>
-                {workspace?.creator?.name?.charAt(0) || "?"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="text-lg font-semibold">{workspace?.name}</h2>
-              <p className="text-xs text-muted-foreground mt-1 animate-pulse">
-                {typingUsers.length
-                  ? typingUsers.map((u) => u.name).join(", ") + " typing…"
-                  : "Workspace Chat"}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
+      <ChatHeader workspace={workspace} isLoading={isLoading}/>
       {/* Messages */}
       <div
         className="flex-1 overflow-y-auto p-4"
@@ -285,7 +260,7 @@ console.log("Unread texts:", unreadTexts);
         )}
 
 
-        <div ref={messagesEndRef} className="size-0"/>
+        <div ref={messagesEndRef} className="size-0" />
       </div>
 
       {/* Input */}

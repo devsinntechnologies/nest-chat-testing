@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const workspace = createApi({
   reducerPath: "workspace",
   baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL_SOCKET,
+    baseUrl: `${BASE_URL_SOCKET}/workspace`,
     prepareHeaders: (headers) => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("token");
@@ -15,31 +15,34 @@ export const workspace = createApi({
   }),
   endpoints: (builder) => ({
     getPublicWorkspaces: builder.query({
-      query: ({ pageNo, pageSize }) => `/workspace/public?pageNo=${pageNo}&pageSize=${pageSize}`,
+      query: ({ pageNo, pageSize }) => `/public?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
     getPrivateWorkspaces: builder.query({
-      query: ({ pageNo, pageSize }) => `/workspace/private/userWorkspaces?pageNo=${pageNo}&pageSize=${pageSize}`,
+      query: ({ pageNo, pageSize }) => `/private/userWorkspaces?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
     fetchWorkspaceChat: builder.query({
-      query: ({ id, pageNo, pageSize }) => `/workspace/chats/${id}?pageNo=${pageNo}&pageSize=${pageSize}`,
+      query: ({ id, pageNo, pageSize }) => `/chats/${id}?pageNo=${pageNo}&pageSize=${pageSize}`,
+    }),
+    getAllMembers: builder.query({
+      query: ({ id, pageNo, pageSize }) => `/members/${id}?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
     joinPublicWorkspace: builder.mutation({
       query: (formData) => ({
-        url: `/workspace/public/addUser`,
+        url: `/public/addUser`,
         method: "POST",
         body: formData,
       }),
     }),
     joinPrivateWorkspace: builder.mutation({
       query: (formData) => ({
-        url: `/workspace/private/addUser`,
+        url: `/private/addUser`,
         method: "POST",
         body: formData,
       }),
     }),
     createPrivateWorkspace: builder.mutation({
       query: (data) => ({
-        url: `/workspace/private/createWorkspace`,
+        url: `/private/createWorkspace`,
         method: "POST",
         body: data,
       }),
@@ -47,7 +50,7 @@ export const workspace = createApi({
 
     createPublicWorkspace: builder.mutation({
       query: (data) => ({
-        url: `/workspace/public/createWorkspace`,
+        url: `/public/createWorkspace`,
         method: "POST",
         body: data,
       }),
@@ -62,5 +65,6 @@ export const {
   useJoinPrivateWorkspaceMutation,
   useCreatePrivateWorkspaceMutation,
   useCreatePublicWorkspaceMutation,
-  useFetchWorkspaceChatQuery
+  useFetchWorkspaceChatQuery,
+  useGetAllMembersQuery
 } = workspace;
