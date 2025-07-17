@@ -21,7 +21,7 @@ const WorkspaceInfos: React.FC<WorkspaceInfosProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-2 pt-10 w-[800px] overflow-hidden">
+      <DialogContent className="p-2 pt-10 w-[800px]">
         <Tabs defaultValue="info" className="w-full">
           <TabsList className='w-full'>
             <TabsTrigger value="info">Info</TabsTrigger>

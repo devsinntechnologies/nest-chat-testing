@@ -55,22 +55,22 @@ export const workspace = createApi({
       }),
     }),
     updateWorkspacePicture: builder.mutation({
-      query: ({id, formData}) => ({
+      query: ({ id, formData }) => ({
         url: `/updateWorkspacePicture/${id}`,
         method: "POST",
         body: formData,
       }),
     }),
-   updateMembertype: builder.mutation({
-  query: ({ id, type }) => ({
-    url: `/updateMembertype/${id}`,
-    method: "PATCH",
-    body: { type }, // send updated type in body
-  }),
-}),
+    updateMembertype: builder.mutation({
+      query: ({ id, type }) => ({
+        url: `/updateMembertype/${id}`,
+        method: "PATCH",
+        body: { type }, // send updated type in body
+      }),
+    }),
 
     deleteMemberById: builder.mutation({
-      query: (id) => ({
+      query: ({ id }) => ({
         url: `/member/${id}`,
         method: "DELETE",
       }),
