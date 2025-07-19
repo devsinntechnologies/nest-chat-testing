@@ -26,7 +26,7 @@ export const chat = createApi({
           pageNo,
           pageSize,
         }).toString();
-    
+
         return `chatRooms/${id}?${queryString}`;
       },
     }),
@@ -39,7 +39,7 @@ export const chat = createApi({
       }),
     }),
 
-     uploadMessageFile: builder.mutation({
+    uploadMessageFile: builder.mutation({
       query: (formData) => ({
         url: `/uploadMessageFile`,
         method: "POST",

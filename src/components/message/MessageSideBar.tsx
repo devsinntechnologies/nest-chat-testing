@@ -63,7 +63,7 @@ const MessageSideBar = () => {
     updatedRooms.sort((a, b) => {
       const timestampA = new Date(a.lastMessage?.timestamp).getTime() || 0;
       const timestampB = new Date(b.lastMessage?.timestamp).getTime() || 0;
-      return timestampB - timestampA; // Descending order
+      return timestampB - timestampA;
     });
 
     return updatedRooms;
@@ -191,9 +191,9 @@ const MessageSideBar = () => {
             (filteredRooms.length > 0 ? (
               filteredRooms.map((room) => {
                 const isSender = room.lastMessage?.senderId === userId;
-                const messageContent = isSender
-                  ? `You: ${room.lastMessage?.content || ""}`
-                  : room.lastMessage?.content || "";
+                const messageContent = room.lastMessage?.type === 'text'
+                  ? room.lastMessage?.message_text
+                  : `[${room.lastMessage?.type}]`
 
                 return (
                   <div
@@ -224,7 +224,7 @@ const MessageSideBar = () => {
                         </h1>
                       </div>
                       <h2 className="text-secondary text-sm truncate">
-                        {messageContent}
+                        {isSender ? `You: ${messageContent}` : messageContent}
                       </h2>
                     </div>
 

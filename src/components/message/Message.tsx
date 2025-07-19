@@ -56,13 +56,13 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
           >
             {msg.type === "image" && (
               // <div className="w-full h-75 flex items-center justify-center">
-                <Image
-                  src={`${BASE_IMAGE}${msg.message_file_url}`}
-                  alt="Uploaded Image"
-                  className="mt-2 rounded-md object-contain max-h-[300px] w-auto block mx-auto"
-                  width={400}
-                  height={400}
-                />
+              <Image
+                src={`${BASE_IMAGE}${msg.message_file_url}`}
+                alt="Uploaded Image"
+                className="mt-2 rounded-md object-contain max-h-[300px] w-auto block mx-auto"
+                width={400}
+                height={400}
+              />
               // </div>
             )}
             {msg.type === "video" && (

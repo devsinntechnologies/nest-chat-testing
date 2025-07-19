@@ -15,7 +15,7 @@ interface VoiceRecorderProps {
 }
 
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onCancel, setIsVoiceMode }) => {
- const { id } = useParams();
+  const { id } = useParams();
   const senderId = useSelector((state: RootState) => state.authSlice.user?.id);
   const [user1Id, user2Id] = (id as string).split('-').map(String);
   const receiverId = senderId === user1Id ? user2Id : user1Id;

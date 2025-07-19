@@ -290,24 +290,24 @@ const Page = () => {
                 placeholder="Type a message..."
                 className="flex-1 p-2 md:p-3 no-scrollbar border w-full md:bg-[#ede6f0] rounded-lg md:rounded-xl focus:outline-none focus:border-primary resize-none"
               />
-                {input.trim().length < 1 ?
-              <button
-                onClick={() => setIsVoiceMode(true)}
-                // disabled={!input.trim()}
-                className="p-3 rounded-xl bg-primary text-white hover:bg-primary/90"
-              >
-                <Mic size={20} />
-              </button>
-              : <button
-                onClick={handleSend}
-                disabled={!input.trim()}
-                className={`p-3 rounded-xl ${input.trim()
-                  ? "bg-primary text-white hover:bg-primary/90"
-                  : "bg-gray-200 text-gray-400"
-                  }`}
-              >
-                <SendHorizonal size={20} />
-              </button>}
+              {input.trim().length < 1 ?
+                <button
+                  onClick={() => setIsVoiceMode(true)}
+                  // disabled={!input.trim()}
+                  className="p-3 rounded-xl bg-primary text-white hover:bg-primary/90"
+                >
+                  <Mic size={20} />
+                </button>
+                : <button
+                  onClick={handleSend}
+                  disabled={!input.trim()}
+                  className={`p-3 rounded-xl ${input.trim()
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-gray-200 text-gray-400"
+                    }`}
+                >
+                  <SendHorizonal size={20} />
+                </button>}
             </div>
           </>
         }
