@@ -38,6 +38,8 @@ export interface MessageProps {
     id: string;
     SenderId: string;
     message_text: string;
+    message_file_url?: string;
+    type: string;
     timestamp: string;
     isRead?: boolean;
     allRead: boolean;

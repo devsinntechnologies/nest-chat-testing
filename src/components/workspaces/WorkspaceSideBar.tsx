@@ -239,8 +239,8 @@ const WorkspaceSideBar = () => {
                 );
                 if (!ws) return null;
 
-                const lastMsg =
-                  room.lastMessage?.message_text || "No messages yet";
+                const messageType = room.lastMessage?.type
+                const lastMsg = messageType === 'text' ? (room.lastMessage?.message_text || "No messages yet") : `[${messageType}]`;
                 const timestamp = room.lastMessage?.timestamp;
                 const unreadedCount = room.unreadMessages || 0;
                 const isSender = room.lastMessage?.SenderId;

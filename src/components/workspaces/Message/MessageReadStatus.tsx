@@ -6,8 +6,8 @@ import { RootState } from "@/store/store";
 import { AvatarFallback } from "@radix-ui/react-avatar";
 import { Check, CheckCheck } from "lucide-react";
 import { useSelector } from "react-redux";
-import { Avatar, AvatarImage } from "../ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 
 type MessageReadStatusProps = {

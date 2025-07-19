@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 const FilterButtons = ({ filter, setFilter }) => {
   return (

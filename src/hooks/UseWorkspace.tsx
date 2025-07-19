@@ -47,6 +47,13 @@ export const workspace = createApi({
         body: data,
       }),
     }),
+    uploadMessageFile: builder.mutation({
+      query: ({ id, formData }) => ({
+        url: `/chats/uploadMessageFile/${id}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
     updateWorkspace: builder.mutation({
       query: (data) => ({
         url: `/${data.id}`,
@@ -68,7 +75,6 @@ export const workspace = createApi({
         body: { type }, // send updated type in body
       }),
     }),
-
     deleteMemberById: builder.mutation({
       query: ({ id }) => ({
         url: `/member/${id}`,
@@ -89,5 +95,6 @@ export const {
   useUpdateWorkspaceMutation,
   useUpdateWorkspacePictureMutation,
   useDeleteMemberByIdMutation,
-  useUpdateMembertypeMutation
+  useUpdateMembertypeMutation,
+  useUploadMessageFileMutation
 } = workspace;

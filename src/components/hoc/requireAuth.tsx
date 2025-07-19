@@ -6,8 +6,8 @@ import { RootState } from "@/store/store";
 // import { toast } from 'sonner';
 // import LoadingSpinner from "../loadingSpinner/LoadingSpinner";
 
-const requireAuth = (WrappedComponent) => {
-  const AuthComponent = (props) => {
+const requireAuth = (WrappedComponent:any) => {
+  const AuthComponent = (props:any) => {
     const router = useRouter();
     const token = useSelector((state: RootState) => state.authSlice.token);
 

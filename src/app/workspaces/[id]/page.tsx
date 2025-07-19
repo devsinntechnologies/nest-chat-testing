@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, PlusCircle, SmilePlus, SendHorizonal } from "lucide-react";
+import { ArrowLeft, PlusCircle, SmilePlus, SendHorizonal, Mic } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -16,9 +16,11 @@ import data from "@emoji-mart/data";
 import withAuth from "@/components/hoc/withAuth";
 import { BASE_IMAGE } from "@/lib/constants";
 import { useInView } from "react-intersection-observer";
-import Message from "@/components/workspaces/Message";
+import Message from "@/components/workspaces/Message/Message";
 import { Button } from "@/components/ui/button";
 import ChatHeader from "@/components/workspaces/ChatHeader";
+import { AddDropdown } from "@/components/workspaces/Inputs/AddDropdown";
+import VoiceRecorder from "@/components/workspaces/Inputs/VoiceRecorder";
 
 const WorkspaceChatPage = () => {
   const { id } = useParams();
@@ -35,6 +37,7 @@ const WorkspaceChatPage = () => {
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollableDiv = useRef<HTMLDivElement>(null);
@@ -49,6 +52,15 @@ const WorkspaceChatPage = () => {
     { refetchOnMountOrArgChange: true }
   );
 
+  const handleSendVoice = (blob: Blob) => {
+    console.log("Voice blob ready:", blob);
+    setIsVoiceMode(false);
+    // TODO: send to backend
+  };
+
+  const handleCancelVoice = () => {
+    setIsVoiceMode(false);
+  };
 
   const workspace = workspaceData?.data;
   console.log(workspace, "abc11")
@@ -144,26 +156,6 @@ const WorkspaceChatPage = () => {
     }
   }, [isAtBottom, unread, workspace]);
 
-  useEffect(() => {
-    const onTyping = ({ userId, name }) => {
-      setTypingUsers((prev) =>
-        prev.some((u) => u.userId === userId) ? prev : [...prev, { userId, name }]
-      );
-    };
-
-    const onStopTyping = ({ userId }) => {
-      setTypingUsers((prev) => prev.filter((u) => u.userId !== userId));
-    };
-
-    socket.on("userTyping", onTyping);
-    socket.on("userStopTyping", onStopTyping);
-
-    return () => {
-      socket.off("userTyping", onTyping);
-      socket.off("userStopTyping", onStopTyping);
-    };
-  }, [socket]);
-
   // Incoming message
   useEffect(() => {
     const onMessage = ({ message }) => {
@@ -182,7 +174,7 @@ const WorkspaceChatPage = () => {
             const alreadyRead = msg.messageReads?.some(r => r.userId === userId);
 
             if (!alreadyRead) {
-              console.log("✅ Writing new read for user", userId, "on message", messageId);
+              // console.log("✅ Writing new read for user", userId, "on message", messageId);
 
               return {
                 ...msg,
@@ -230,7 +222,7 @@ const WorkspaceChatPage = () => {
 
   return (
     <div className="flex flex-col h-screen w-full border-l">
-      <ChatHeader workspace={workspace} isLoading={isLoading} refetchWorkspace={refetch}/>
+      <ChatHeader workspace={workspace} isLoading={isLoading} refetchWorkspace={refetch} />
       {/* Messages */}
       <div
         className="flex-1 overflow-y-auto p-4"
@@ -266,44 +258,61 @@ const WorkspaceChatPage = () => {
 
       {/* Input */}
       <div className="w-full px-3 py-4 flex items-center gap-2 relative">
-        <PlusCircle className="size-6" />
-        <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-          <SmilePlus className={`size-6 ${showEmojiPicker && "text-primary"}`} />
-        </button>
-        {showEmojiPicker && (
-          <div className="absolute bottom-24 left-4 z-10">
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji) => setInput((prev) => prev + emoji.native)}
-              onClickOutside={() => setShowEmojiPicker(false)}
-              theme="light"
+        {isVoiceMode ?
+          <VoiceRecorder
+            setIsVoiceMode={setIsVoiceMode}
+            onCancel={handleCancelVoice}
+          />
+          :
+          <>
+            <AddDropdown />
+            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+              <SmilePlus className={`size-6 ${showEmojiPicker && "text-primary"}`} />
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-24 left-4 z-10">
+                <Picker
+                  data={data}
+                  onEmojiSelect={(emoji) => setInput((prev) => prev + emoji.native)}
+                  onClickOutside={() => setShowEmojiPicker(false)}
+                  theme="light"
+                />
+              </div>
+            )}
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={1}
+              placeholder="Type a message…"
+              className="flex-1 p-3 border rounded-xl focus:outline-none resize-none"
             />
-          </div>
-        )}
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          rows={1}
-          placeholder="Type a message…"
-          className="flex-1 p-3 border rounded-xl focus:outline-none resize-none"
-        />
-        <button
-          onClick={handleSend}
-          disabled={!input.trim()}
-          className={`p-3 rounded-xl ${input.trim()
-            ? "bg-primary text-white hover:bg-primary/90"
-            : "bg-gray-200 text-gray-400"
-            }`}
-        >
-          <SendHorizonal size={20} />
-        </button>
+            {input.trim().length < 1 ?
+              <button
+                onClick={() => setIsVoiceMode(true)}
+                // disabled={!input.trim()}
+                className="p-3 rounded-xl bg-primary text-white hover:bg-primary/90"
+              >
+                <Mic size={20} />
+              </button>
+              : <button
+                onClick={handleSend}
+                disabled={!input.trim()}
+                className={`p-3 rounded-xl ${input.trim()
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-gray-200 text-gray-400"
+                  }`}
+              >
+                <SendHorizonal size={20} />
+              </button>}
+          </>
+        }
       </div>
     </div>
   );

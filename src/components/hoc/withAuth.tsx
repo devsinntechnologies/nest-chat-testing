@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RootState } from "@/store/store";
 
-const withAuth = (WrappedComponent) => {
-  const Auth = (props) => {
-    const token = useSelector((state:RootState) => state.authSlice.token);
+const withAuth = (WrappedComponent: any) => {
+  const Auth = (props: any) => {
+    const token = useSelector((state: RootState) => state.authSlice.token);
     const router = useRouter();
 
     useEffect(() => {
