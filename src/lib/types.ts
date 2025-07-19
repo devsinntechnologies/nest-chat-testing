@@ -62,3 +62,24 @@ export interface MessageProps {
   idx?: number;
   socket?: any;
 };
+
+export interface SingleMessageProps {
+  msg: {
+    id: string,
+    type: string,
+    message_text: string,
+    message_file_url?: string,
+    timestamp: string,
+    Sender: {
+      id: string,
+      name: string,
+      imageUrl: string
+    },
+    Receiver: {
+      id: string,
+      name: string,
+      imageUrl: string
+    },
+    isRead: boolean
+  }
+};

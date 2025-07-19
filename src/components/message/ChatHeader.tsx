@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { RootState } from '@/store/store'
 import { getWorkspaceSocket } from '@/lib/workspaceSocket'
 import { BASE_IMAGE } from '@/lib/constants'
+import { getSocket } from '@/lib/socket'
 
 interface ChatHeaderProps {
   isLoading: boolean, 
@@ -17,9 +18,9 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader:React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
-  const userId = useSelector((state: RootState) => state.authSlice.user?.id);
+  // const userId = useSelector((state: RootState) => state.authSlice.user?.id);
   const router = useRouter();
-  const socket = getWorkspaceSocket();
+  const socket = getSocket();
   const [ typing, setTyping ] = useState(false)
 
   useEffect(() => {  

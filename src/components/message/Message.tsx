@@ -6,13 +6,13 @@ import { useInView } from "react-intersection-observer";
 import { RootState } from "@/store/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BASE_IMAGE } from "@/lib/constants";
-import { MessageProps } from "@/lib/types";
+import { SingleMessageProps } from "@/lib/types";
 import Image from "next/image";
 import AudioPlayer from "@/components/players/AudioPlayer";
 import VideoPlayer from "@/components/players/VideoPlayer";
 
 
-const Message: React.FC<MessageProps> = ({ msg }) => {
+const Message: React.FC<SingleMessageProps> = ({ msg }) => {
   const senderId = useSelector(
     (state: RootState) => state.authSlice?.user?.id
   );

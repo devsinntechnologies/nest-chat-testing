@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, ChangeEvent, KeyboardEvent } from "react";
 import {
   MousePointerClick,
   PlusCircle,
@@ -24,13 +24,21 @@ interface Message {
   text: string;
   timestamp: string;
   senderId: string;
-  // etc.
+  message_text?: string;
+  sender?: { id: string };
+  [key: string]: any;
+}
+
+interface Params {
+  id: string;
 }
 
 const Page = () => {
   const { id } = useParams();
-  const [pageNo, setPageNo] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [pageNo, setPageNo] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const senderId = useSelector((state: RootState) => state.authSlice?.user?.id);
+  const socket = getSocket();
   const pageSize = 12;
 
   const {
@@ -41,20 +49,16 @@ const Page = () => {
   } = useFetchChatRoomQuery({ id, pageNo, pageSize });
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [receiver, setReceiver] = useState(null);
-  const [typing, setTyping] = useState(false);
+  const [input, setInput] = useState<string>("");
+  const [receiver, setReceiver] = useState<any>(null);
+  const [typing, setTyping] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [isVoiceMode, setIsVoiceMode] = useState<boolean>(false);
 
-  // const [totalMessages, setTotalMessages] = useState(0);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
-
-
-  // Refs
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef(null);
-  const scrollableDiv = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const scrollableDiv = useRef<HTMLDivElement | null>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const sortMessagesByTimestamp = useCallback((msgs: Message[]): Message[] => {
@@ -68,66 +72,53 @@ const Page = () => {
     setIsVoiceMode(false);
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setInput(value);
     adjustTextareaHeight();
     if (!typing) {
-      socket.emit("typing", id);
-      setTyping(true)
+      socket.emit("typing", {roomId: id});
+      setTyping(true);
     }
-
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
-
     typingTimeout.current = setTimeout(() => {
-      socket.emit("stopTyping", id);
-      setTyping(false)
+      socket.emit("stopTyping", {roomId: id});
+      setTyping(false);
     }, 1500);
   };
 
-
-  // Initial data load
   useEffect(() => {
     if (messagesData?.success) {
       if (pageNo === 1) {
-        // For first page, sort messages by timestamp
         const sortedMessages = sortMessagesByTimestamp(
           messagesData.data.messages || []
         );
         setMessages(sortedMessages);
 
         if (isInitialLoad) {
-          // Only scroll to bottom on the very first load
           setTimeout(() => {
             scrollToBottom();
             setIsInitialLoad(false);
           }, 100);
         }
       } else {
-        // For subsequent pages, merge and sort all messages
         setMessages((prev) => {
           const allMessages = [...messagesData.data.messages, ...prev];
           return sortMessagesByTimestamp(allMessages);
         });
       }
-
-      // setTotalMessages(messagesData.data.totalmessages || 0);
       setHasMore(
         pageNo < Math.ceil(messagesData.data.totalmessages / pageSize)
       );
     }
-
     if (isError) setHasMore(false);
   }, [messagesData, isError, pageNo, isInitialLoad, sortMessagesByTimestamp]);
 
-  // Set receiver info
   useEffect(() => {
     if (messagesData?.data?.receiver) {
       setReceiver(messagesData.data.receiver);
     }
   }, [messagesData]);
-
-
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -139,34 +130,26 @@ const Page = () => {
     }
   };
 
-  const senderId = useSelector((state: RootState) => state.authSlice?.user?.id);
-  const socket = getSocket();
-
-
-  // Socket event handlers for chat
   useEffect(() => {
     if (id && senderId) {
       socket.emit("joinChatRoom", id);
       refetch();
     }
-
     return () => {
       socket.emit("leaveChatRoom", id);
     };
   }, [id, senderId, socket, refetch]);
 
   useEffect(() => {
-    socket.on("receiveMessage", ({ message }) => {
+    socket.on("receiveMessage", ({ message }: { message: Message }) => {
       if (message?.message_text && message?.timestamp) {
         setMessages((prev) => {
-          // Add new message and sort all messages
           const updatedMessages = [...prev, message];
           return sortMessagesByTimestamp(updatedMessages);
         });
         scrollToBottom();
       }
     });
-
     return () => {
       socket.off("receiveMessage");
     };
@@ -182,9 +165,7 @@ const Page = () => {
         timestamp: new Date().toISOString(),
         sender: { id: senderId },
       };
-
       socket.emit("sendMessage", newMessage);
-
       setInput("");
       scrollToBottom();
     }
