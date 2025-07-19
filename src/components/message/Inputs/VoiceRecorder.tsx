@@ -92,7 +92,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onCancel, setIsVoiceMode 
     try {
       const res = await fetch(mediaBlobUrl);
       const blob = await res.blob();
-      console.log("Voice blob ready:", blob);
       await handleUpload(blob);
     } catch {
       toast.error("Failed to process audio.");

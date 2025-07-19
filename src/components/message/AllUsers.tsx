@@ -17,7 +17,6 @@ const AllUsers = () => {
   const { data, isLoading, isError } = useGetAllUsersQuery({})
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
-  console.log(data)
   if (isLoading) return <p>Loading users...</p>
   if (isError) return <p>Failed to fetch users.</p>
 

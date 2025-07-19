@@ -32,7 +32,6 @@ const Page = () => {
         toast.dismiss(toastId);
         toast.success("Login Successful");
         const lastVisitedPath = localStorage.getItem("lastVisitedPath") || "/";
-        console.log(response.token)
         dispatch(setLogin({ token: response?.token }));
         router.push(lastVisitedPath);
       } else if (!response?.success && response?.isVerify === false) {

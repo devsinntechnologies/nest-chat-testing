@@ -154,8 +154,7 @@ const WorkspaceChatPage = () => {
     };
 
     const onMessageReaded = ({ messageId, userId, readAt, user }) => {
-      console.log("onMessageReaded payload:", { messageId, userId, readAt, user });
-
+      
       setMessages((prev) => {
         const next = sortMessages(
           prev.map((msg) => {
@@ -164,7 +163,6 @@ const WorkspaceChatPage = () => {
             const alreadyRead = msg.messageReads?.some(r => r.userId === userId);
 
             if (!alreadyRead) {
-              // console.log("✅ Writing new read for user", userId, "on message", messageId);
 
               return {
                 ...msg,
@@ -181,7 +179,6 @@ const WorkspaceChatPage = () => {
           })
         );
 
-        console.log("📝 Next messages state will be:", next);
         return next;
       });
 

@@ -67,7 +67,6 @@ const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetc
       refetchWorkspace()
       setEditMode(false);
     } catch (error: any) {
-      console.log(error)
       toast.error(error?.data.message || 'Failed to update workspace.');
     }
   };

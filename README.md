@@ -1,39 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Nest Chat Frontend
 
-## Node Version
-#### 20.18.0
+A modern, scalable web application built with **Next.js**, featuring state management with **Redux Toolkit**, real-time communication using **Socket.IO**, and a beautiful UI powered by **shadcn/ui**.
 
-## Getting Started
+---
 
-First, run the development server:
+## 🧰 Versions
+
+- [Node.js](https://nodejs.org/) — **v22.17.0**
+- [pnpm](https://pnpm.io/) — latest
+
+You can install pnpm globally if not already installed:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install -g pnpm
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+git clone https://github.com/devsinntechnologies/nest-chat-testing.git
+cd <your-project-directory>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Install dependencies using pnpm:**
 
-## Learn More
-crypto.randomBytes(16).toString("hex");
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Running the Project
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To start the development server:
 
-## Deploy on Vercel
+```bash
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Making Production build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To make production build:
+
+```bash
+pnpm build
+```
+
+After build has been done
+
+### Start the Production build
+
+```bash
+pnpm start
+```
+
+## ✍️ Author
+
+**Muhammad Arslan**  
+📧 [marslanmustafa391@gmail.com](mailto:marslanmustafa391@gmail.com)  
+🌐 [https://marslanmustafa.com](https://marslanmustafa.com)

@@ -22,8 +22,6 @@ export default function CreatePrivateWorkspaceDialog({
   try {
     const res = await createWorkspace({ name: name.trim() || "New Workspace" }).unwrap();
 
-    console.log("✅ Response from createWorkspace:", res); // 👈 log this
-
     toast.dismiss(loadingId);
 
     if (!res?.success) {

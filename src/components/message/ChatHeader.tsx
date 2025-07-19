@@ -25,7 +25,6 @@ const ChatHeader:React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
 
   useEffect(() => {  
       socket.on("typing", () => {
-        console.log("typing")
         setTyping(true);
       });
   
