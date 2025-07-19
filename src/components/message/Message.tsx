@@ -6,38 +6,21 @@ import { useInView } from "react-intersection-observer";
 import { RootState } from "@/store/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BASE_IMAGE } from "@/lib/constants";
-import MessageReadStatus from "./MessageReadStatus";
 import { MessageProps } from "@/lib/types";
 import Image from "next/image";
 import AudioPlayer from "@/components/players/AudioPlayer";
 import VideoPlayer from "@/components/players/VideoPlayer";
 
 
-const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
+const Message: React.FC<MessageProps> = ({ id, msg, idx }) => {
   const senderId = useSelector(
     (state: RootState) => state.authSlice?.user?.id
   );
 
   const [expanded, setExpanded] = useState(false);
-  const [showReadBy, setShowReadBy] = useState(false);
 
-  const isSender = msg.SenderId === senderId;
+  const isSender = msg?.Sender?.id === senderId;
 
-  const { ref, inView } = useInView({
-    threshold: 0.9,
-    triggerOnce: true,
-  });
-
-  const alreadyReadByMe = msg.messageReads?.some(r => r.userId === senderId);
-
-  useEffect(() => {
-    if (inView && !alreadyReadByMe) {
-      socket.emit("readMessage", {
-        messageId: msg.id,
-        workspaceId: id,
-      });
-    }
-  }, [inView, alreadyReadByMe, msg.id, id, socket]);
 
   const handleToggleExpand = () => setExpanded(!expanded);
 
@@ -45,7 +28,6 @@ const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
   return (
     <>
       <div
-        ref={ref}
         className={`flex mb-3 items-end ${isSender ? "justify-end" : "justify-start"
           }`}
       >
@@ -66,26 +48,28 @@ const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
         )}
 
         {["image", "video", "audio"].includes(msg.type) ? (
-          <div 
+          <div
             className={`space-y-2 bg-gray-200 p-3 text-sm rounded-2xl max-w-[75%] relative ${isSender
               ? "bg-gray-600 text-white rounded-br-none"
               : "bg-muted text-black rounded-bl-none"
               }`}
           >
             {msg.type === "image" && (
-              <Image
-                src={`${BASE_IMAGE}${msg.message_file_url}`}
-                alt="Uploaded Image"
-                className="mt-2 rounded-md max-w-full"
-                width={400}
-                height={400}
-              />
+              <div className="w-full h-75 flex items-center justify-center">
+                <Image
+                  src={`${BASE_IMAGE}${msg.message_file_url}`}
+                  alt="Uploaded Image"
+                  className="mt-2 rounded-md object-contain max-h-[300px] w-auto block mx-auto"
+                  width={400}
+                  height={400}
+                />
+              </div>
             )}
             {msg.type === "video" && (
               <VideoPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />
             )}
             {msg.type === "audio" && (
-            <AudioPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />
+              <AudioPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />
             )}
             <p className="whitespace-pre-wrap break-words">
               {expanded || msg.message_text.length <= 250
@@ -97,13 +81,6 @@ const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-
-              {isSender && (
-                <MessageReadStatus
-                  message={msg}
-                  allRead={msg?.allRead}
-                />
-              )}
             </div>
           </div>
         ) : (
@@ -132,12 +109,6 @@ const Message: React.FC<MessageProps> = ({ id, msg, idx, socket }) => {
                 minute: "2-digit",
               })}
 
-              {isSender && (
-                <MessageReadStatus
-                  message={msg}
-                  allRead={msg?.allRead}
-                />
-              )}
             </div>
           </div>
         )}

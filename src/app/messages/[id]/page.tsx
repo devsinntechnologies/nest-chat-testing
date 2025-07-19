@@ -20,6 +20,7 @@ import withAuth from "@/components/hoc/withAuth";
 import InfiniteScroll from "react-infinite-scroll-component";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import Message from "@/components/message/Message";
 
 interface Message {
   id: string;
@@ -155,7 +156,7 @@ const Page = () => {
 
   useEffect(() => {
     socket.on("receiveMessage", ({ message }) => {
-      if (message?.content && message?.timestamp) {
+      if (message?.message_text && message?.timestamp) {
         setMessages((prev) => {
           // Add new message and sort all messages
           const updatedMessages = [...prev, message];
@@ -203,7 +204,7 @@ const Page = () => {
         roomId: id,
         senderId,
         receiverId: receiver?.id,
-        content: input.trim(),
+        message_text: input.trim(),
         timestamp: new Date().toISOString(),
         sender: { id: senderId },
       };
@@ -290,11 +291,11 @@ const Page = () => {
           </div>
         )}
       </div>
-      <div className="bg-[#f5f5f5] h-[calc(100vh-215px)] flex-1">
+      <div className=" h-[calc(100vh-215px)] flex-1">
         <div
           id="scrollableDiv"
           ref={scrollableDiv}
-          className="flex-1 p-4 overflow-y-auto h-full bg-[#f5f5f5] flex flex-col-reverse"
+          className="flex-1 p-4 overflow-y-auto h-full flex flex-col-reverse"
         >
           {isLoading && pageNo === 1 ? (
             <div className="text-center text-gray-500">Loading...</div>
@@ -327,90 +328,88 @@ const Page = () => {
             >
               <div ref={messagesEndRef} />
               {messages.map((msg, index) => {
-                const isExpanded = expandedMessages[index];
-                const isSender = msg.sender.id === senderId;
-                const maxChars = 250;
 
                 return (
-                  <div
-                    key={index}
-                    className={`flex mb-3 ${isSender ? "justify-end" : "justify-start"
-                      }`}
-                  >
-                    {!isSender ? (
-                      <div className="flex items-start gap-2 !w-[75%] !max-w-[75%]">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage
-                            src={
-                              receiver?.imageUrl
-                                ? `${BASE_IMAGE}${receiver?.imageUrl}`
-                                : ""
-                            }
-                            alt=""
-                            className="w-full h-full text-sm bg-gradient-to-t to-gradientTo from-gradientFrom"
-                          />
-                          <AvatarFallback className="bg-primary text-white">
-                            {receiver?.name?.charAt(0).toUpperCase() || "?"}
-                          </AvatarFallback>
-                        </Avatar>
+                  // <div
+                  //   key={index}
+                  //   className={`flex mb-3 ${isSender ? "justify-end" : "justify-start"
+                  //     }`}
+                  // >
+                  //   {!isSender ? (
+                  //     <div className="flex items-start gap-2 !w-[75%] !max-w-[75%]">
+                  //       <Avatar className="w-10 h-10">
+                  //         <AvatarImage
+                  //           src={
+                  //             receiver?.imageUrl
+                  //               ? `${BASE_IMAGE}${receiver?.imageUrl}`
+                  //               : ""
+                  //           }
+                  //           alt=""
+                  //           className="w-full h-full text-sm bg-gradient-to-t to-gradientTo from-gradientFrom"
+                  //         />
+                  //         <AvatarFallback className="bg-primary text-white">
+                  //           {receiver?.name?.charAt(0).toUpperCase() || "?"}
+                  //         </AvatarFallback>
+                  //       </Avatar>
 
-                        <div className="flex flex-col items-start max-w-full">
-                          <div
-                            className={`p-3 w-full max-w-full ${msg.content.includes(" ")
-                                ? "break-words"
-                                : "break-all"
-                              }  rounded-t-2xl text-sm rounded-br-2xl rounded-bl-[8px] bg-[#eceaed] text- ${isSender ? "bg-[#eceaed]" : ""
-                              }`}
-                          >
-                            <p className="">
-                              {isExpanded || msg.content.length <= maxChars
-                                ? msg.content
-                                : msg.content.slice(0, maxChars) + "..."}
-                            </p>
-                            {msg.content.length > 250 && (
-                              <button
-                                onClick={() => toggleExpand(index)}
-                                className="text-primary text-xs mt-1"
-                              >
-                                {isExpanded ? "See less" : "See More"}
-                              </button>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500 text-right w-full mt-1">
-                            {new Date(msg.timestamp).toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-end max-w-[85%] md:max-w-[75%]">
-                        <div
-                          className={`p-3 
-                          ${msg.content.includes(" ")
-                              ? "break-words"
-                              : "break-all"
-                            } 
-                          w-full max-w-full !text-wrap rounded-t-3xl text-sm rounded-br-[10px] rounded-bl-3xl text-white bg-primary`}
-                        >
-                          <p>
-                            {isExpanded || msg.content.length <= maxChars
-                              ? msg.content
-                              : msg.content.slice(0, maxChars) + "..."}
-                          </p>
-                          {msg.content.length > 250 && (
-                            <button
-                              onClick={() => toggleExpand(index)}
-                              className="text-[#eceaed] text-xs mt-1"
-                            >
-                              {isExpanded ? "See less" : "See More"}
-                            </button>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500 text-right w-full mt-1">
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  //       <div className="flex flex-col items-start max-w-full">
+                  //         <div
+                  //           className={`p-3 w-full max-w-full ${msg.message_text.includes(" ")
+                  //             ? "break-words"
+                  //             : "break-all"
+                  //             }  rounded-t-2xl text-sm rounded-br-2xl rounded-bl-[8px] bg-[#eceaed] text- ${isSender ? "bg-[#eceaed]" : ""
+                  //             }`}
+                  //         >
+                  //           <p className="">
+                  //             {isExpanded || msg.message_text.length <= maxChars
+                  //               ? msg.message_text
+                  //               : msg.message_text.slice(0, maxChars) + "..."}
+                  //           </p>
+                  //           {msg.message_text.length > 250 && (
+                  //             <button
+                  //               onClick={() => toggleExpand(index)}
+                  //               className="text-primary text-xs mt-1"
+                  //             >
+                  //               {isExpanded ? "See less" : "See More"}
+                  //             </button>
+                  //           )}
+                  //         </div>
+                  //         <div className="text-xs text-gray-500 text-right w-full mt-1">
+                  //           {new Date(msg.timestamp).toLocaleTimeString()}
+                  //         </div>
+                  //       </div>
+                  //     </div>
+                  //   ) : (
+                  //     <div className="flex flex-col items-end max-w-[85%] md:max-w-[75%]">
+                  //       <div
+                  //         className={`p-3 
+                  //         ${msg.message_text.includes(" ")
+                  //             ? "break-words"
+                  //             : "break-all"
+                  //           } 
+                  //         w-full max-w-full !text-wrap rounded-t-3xl text-sm rounded-br-[10px] rounded-bl-3xl text-white bg-primary`}
+                  //       >
+                  //         <p>
+                  //           {isExpanded || msg.message_text.length <= maxChars
+                  //             ? msg.message_text
+                  //             : msg.message_text.slice(0, maxChars) + "..."}
+                  //         </p>
+                  //         {msg.message_text.length > 250 && (
+                  //           <button
+                  //             onClick={() => toggleExpand(index)}
+                  //             className="text-[#eceaed] text-xs mt-1"
+                  //           >
+                  //             {isExpanded ? "See less" : "See More"}
+                  //           </button>
+                  //         )}
+                  //       </div>
+                  //       <div className="text-xs text-gray-500 text-right w-full mt-1">
+                  //         {new Date(msg.timestamp).toLocaleTimeString()}
+                  //       </div>
+                  //     </div>
+                  //   )}
+                  // </div>
+                  <Message key={index} id={id} idx={index} socket={socket} msg={msg}/>
                 );
               })}
             </InfiniteScroll>

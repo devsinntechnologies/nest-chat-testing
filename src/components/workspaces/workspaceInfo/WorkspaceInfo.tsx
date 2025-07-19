@@ -10,7 +10,7 @@ import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { BASE_IMAGE } from '@/lib/constants';
 import { useUpdateWorkspaceMutation, useUpdateWorkspacePictureMutation } from '@/hooks/UseWorkspace';
-import CropModal from '../Modal/CropModal';
+import CropModal from '../../Modal/CropModal';
 
 const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetchWorkspace: () => void }) => {
   const [updateWorkspaceImage, { isLoading: workspaceImageLoading }] = useUpdateWorkspacePictureMutation();

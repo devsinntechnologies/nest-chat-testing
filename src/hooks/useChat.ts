@@ -19,7 +19,7 @@ export const chat = createApi({
   }),
   endpoints: (builder) => ({
     fetchChats: builder.query({
-      query: () => `/chat_rooms/`,
+      query: () => `/chatRooms/`,
     }),
 
     fetchChatRoom: builder.query({
@@ -29,7 +29,7 @@ export const chat = createApi({
           pageSize,
         }).toString();
     
-        return `chat_room/${id}?${queryString}`;
+        return `chatRooms/${id}?${queryString}`;
       },
     }),
 

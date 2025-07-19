@@ -44,6 +44,7 @@ export interface MessageProps {
     isRead?: boolean;
     allRead: boolean;
     Sender?: {
+      id?: string;
       name?: string;
       imageUrl?: string;
     };
