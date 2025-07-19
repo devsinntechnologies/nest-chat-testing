@@ -12,7 +12,7 @@ import AudioPlayer from "@/components/players/AudioPlayer";
 import VideoPlayer from "@/components/players/VideoPlayer";
 
 
-const Message: React.FC<MessageProps> = ({ id, msg, idx }) => {
+const Message: React.FC<MessageProps> = ({ msg }) => {
   const senderId = useSelector(
     (state: RootState) => state.authSlice?.user?.id
   );

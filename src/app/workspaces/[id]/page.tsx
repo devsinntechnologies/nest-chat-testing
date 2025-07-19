@@ -52,18 +52,12 @@ const WorkspaceChatPage = () => {
     { refetchOnMountOrArgChange: true }
   );
 
-  const handleSendVoice = (blob: Blob) => {
-    console.log("Voice blob ready:", blob);
-    setIsVoiceMode(false);
-    // TODO: send to backend
-  };
 
   const handleCancelVoice = () => {
     setIsVoiceMode(false);
   };
 
   const workspace = workspaceData?.data;
-  console.log(workspace, "abc11")
   const totalCount = workspaceData?.totalCount || 0;
 
   const hasMore = messages.length < totalCount;
@@ -77,11 +71,7 @@ const WorkspaceChatPage = () => {
     m => !m.messageReads?.some(r => r.userId === senderId)
   );
 
-  console.log("Unread messages:", unreadMessages);
-
   const unreadTexts = unreadMessages.map(m => m.message_text);
-
-  console.log("Unread texts:", unreadTexts);
 
   const sortMessages = useCallback(
     (msgs) =>

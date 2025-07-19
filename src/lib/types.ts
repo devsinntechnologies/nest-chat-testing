@@ -33,7 +33,7 @@ export interface Workspace {
 }
 
 export interface MessageProps {
-  id: string;
+  id?: string;
   msg: {
     id: string;
     SenderId: string;
@@ -59,6 +59,6 @@ export interface MessageProps {
       readAt: string;
     }[];
   };
-  idx: number;
-  socket: any;
+  idx?: number;
+  socket?: any;
 };
