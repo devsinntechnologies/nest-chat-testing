@@ -5,6 +5,7 @@ import {
   PlusCircle,
   SmilePlus,
   SendHorizonal,
+  Mic,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
@@ -18,6 +19,8 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import Message from "@/components/message/Message";
 import ChatHeader from "@/components/message/ChatHeader";
+import VoiceRecorder from "@/components/message/Inputs/VoiceRecorder";
+import { AddDropdown } from "@/components/message/Inputs/AddDropdown";
 
 interface Message {
   id: string;
@@ -77,12 +80,12 @@ const Page = () => {
     setInput(value);
     adjustTextareaHeight();
     if (!typing) {
-      socket.emit("typing", {roomId: id});
+      socket.emit("typing", { roomId: id });
       setTyping(true);
     }
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => {
-      socket.emit("stopTyping", {roomId: id});
+      socket.emit("stopTyping", { roomId: id });
       setTyping(false);
     }, 1500);
   };
@@ -244,43 +247,74 @@ const Page = () => {
           )}
         </div>
       </div>
-      <div className="w-full px-1.5 py-3 md:p-4 flex items-center">
+      <div className="w-full px-3 py-4 flex items-center gap-2 relative">
+        {isVoiceMode ?
+          <VoiceRecorder
+            setIsVoiceMode={setIsVoiceMode}
+            onCancel={handleCancelVoice}
+          />
+          :
+          <>
+            <AddDropdown />
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="mr-2"
+            >
+              <SmilePlus
+                className={`${showEmojiPicker && "text-primary"} size-6`}
+              />
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-22 left-4">
+                <Picker
+                  data={data}
+                  onEmojiSelect={handleEmojiSelect}
+                  onClickOutside={() => setShowEmojiPicker(false)}
+                  theme="light"
+                />
+              </div>
+            )}
+            <div className="flex-1 flex items-center gap-1 justify-between">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                rows={1}
+                placeholder="Type a message..."
+                className="flex-1 p-2 md:p-3 no-scrollbar border w-full md:bg-[#ede6f0] rounded-lg md:rounded-xl focus:outline-none focus:border-primary resize-none"
+              />
+                {input.trim().length < 1 ?
+              <button
+                onClick={() => setIsVoiceMode(true)}
+                // disabled={!input.trim()}
+                className="p-3 rounded-xl bg-primary text-white hover:bg-primary/90"
+              >
+                <Mic size={20} />
+              </button>
+              : <button
+                onClick={handleSend}
+                disabled={!input.trim()}
+                className={`p-3 rounded-xl ${input.trim()
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-gray-200 text-gray-400"
+                  }`}
+              >
+                <SendHorizonal size={20} />
+              </button>}
+            </div>
+          </>
+        }
+      </div>
+      {/* <div className="w-full px-1.5 py-3 md:p-4 flex items-center">
         <div className="w-fit flex items-center gap-2 pr-2">
           <PlusCircle className="size-6" />
-          <button
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="mr-2"
-          >
-            <SmilePlus
-              className={`${showEmojiPicker && "text-primary"} size-6`}
-            />
-          </button>
-          {showEmojiPicker && (
-            <div className="absolute bottom-22 left-4">
-              <Picker
-                data={data}
-                onEmojiSelect={handleEmojiSelect}
-                onClickOutside={() => setShowEmojiPicker(false)}
-                theme="light"
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 flex items-center gap-1 justify-between">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            rows={1}
-            placeholder="Type a message..."
-            className="flex-1 p-2 md:p-3 no-scrollbar border w-full md:bg-[#ede6f0] rounded-lg md:rounded-xl focus:outline-none focus:border-primary resize-none"
-          />
+        
 
           <button
             onClick={handleSend}
@@ -297,7 +331,7 @@ const Page = () => {
             <span className="hidden md:block">Send</span>
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
