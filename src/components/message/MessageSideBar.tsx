@@ -130,12 +130,12 @@ const MessageSideBar = () => {
         prevRooms.map((room) =>
           room.roomId === roomId
             ? {
-                ...room,
-                lastMessage: {
-                  ...room.lastMessage,
-                },
-                unreadMessages,
-              }
+              ...room,
+              lastMessage: {
+                ...room.lastMessage,
+              },
+              unreadMessages,
+            }
             : room
         )
       );
@@ -171,17 +171,16 @@ const MessageSideBar = () => {
     <div className="relative w-full flex flex-col h-screen bg-gray-50 border-r">
       <div className="px-4 pt-3">
         <div className="text-xl flex gap-2 items-center">
-         <Link href="/">
-         <ArrowLeft
-            size={21}
-            className="cursor-pointer font-extralight text-base"
-          /></Link>
+          <Link href="/">
+            <ArrowLeft
+              size={21}
+              className="cursor-pointer font-extralight text-base"
+            /></Link>
           <h1 className="font-semibold">Chats</h1>
         </div>
         <SearchBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          onSearch={setSearchTerm}
         />
         <FilterButtons filter={filter} setFilter={setFilter} />
       </div>
@@ -200,9 +199,8 @@ const MessageSideBar = () => {
                   <div
                     onClick={() => handleRoomClick(room.roomId)} // Fixed function name
                     key={room.roomId}
-                    className={`w-full cursor-pointer transition-all justify-center py-4 px-3 gap-4 flex items-center ${
-                      activeRoomId === room.roomId ? "border-2 rounded-lg" : ""
-                    }`}
+                    className={`w-full cursor-pointer transition-all justify-center py-4 px-3 gap-4 flex items-center ${activeRoomId === room.roomId ? "border-2 rounded-lg" : ""
+                      }`}
                   >
                     <Avatar className="lg:w-12 lg:h-12  w-10 h-10">
                       <AvatarImage
@@ -226,7 +224,7 @@ const MessageSideBar = () => {
                         </h1>
                       </div>
                       <h2 className="text-secondary text-sm truncate">
-                      {messageContent}
+                        {messageContent}
                       </h2>
                     </div>
 
@@ -241,15 +239,15 @@ const MessageSideBar = () => {
             ) : (
               <div className="text-center py-4">
                 {/* <EmptyInbox /> */}
-                <div className="w-full flex items-center justify-center h-40 gap-3"><MessageSquareWarningIcon/> No Chats Found</div>
+                <div className="w-full flex items-center justify-center h-40 gap-3"><MessageSquareWarningIcon /> No Chats Found</div>
               </div>
             ))}
           {isLoading &&
             <div className="w-full space-y-3">
               {[...Array(5)].map((_, index) => (
-              <Skeleton key={index} className="w-full h-[60px]" />
-            ))}
-              </div>}
+                <Skeleton key={index} className="w-full h-[60px]" />
+              ))}
+            </div>}
           {!isLoading && isError && (
             <div className="h-50 text-destructive text-lg flex items-center justify-center">
               Error loading Messages. Please try again.
@@ -257,7 +255,7 @@ const MessageSideBar = () => {
           )}
         </div>
       </div>
-    <div className="absolute bottom-2 right-2"> <AllUsers/></div>
+      <div className="absolute bottom-2 right-2"> <AllUsers /></div>
     </div>
   );
 };
