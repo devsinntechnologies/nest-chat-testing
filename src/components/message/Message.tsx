@@ -50,12 +50,12 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
         {["image", "video", "audio"].includes(msg.type) ? (
           <div
             className={`space-y-2 bg-gray-200 p-3 text-sm rounded-2xl max-w-[75%] relative ${isSender
-              ? "bg-gray-600 text-white rounded-br-none"
+              ? "bg-gray-800 text-white rounded-br-none"
               : "bg-muted text-black rounded-bl-none"
               }`}
           >
             {msg.type === "image" && (
-              <div className="w-full h-75 flex items-center justify-center">
+              // <div className="w-full h-75 flex items-center justify-center">
                 <Image
                   src={`${BASE_IMAGE}${msg.message_file_url}`}
                   alt="Uploaded Image"
@@ -63,7 +63,7 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
                   width={400}
                   height={400}
                 />
-              </div>
+              // </div>
             )}
             {msg.type === "video" && (
               <VideoPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />

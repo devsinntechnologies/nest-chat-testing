@@ -19,15 +19,22 @@ import { PlusCircle, Video, Mic, ImageIcon, Trash2, Loader2, Crop } from "lucide
 import { useState } from "react";
 import CropModal from "../../Modal/CropModal";
 import Image from "next/image";
-import { useUploadMessageFileMutation } from "@/hooks/UseWorkspace";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { getWorkspaceSocket } from "@/lib/workspaceSocket";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { getSocket } from "@/lib/socket";
+import { useUploadMessageFileMutation } from "@/hooks/useChat";
 
 export function AddDropdown() {
   const { id } = useParams();
-  const socket = getWorkspaceSocket();
+  const senderId = useSelector((state: RootState) => state.authSlice.user?.id);
+
+  const [user1Id, user2Id] = (id as string).split('-').map(String);
+
+  const receiverId = senderId === user1Id ? user2Id : user1Id;
+  const socket = getSocket();
   const [addFile, { isLoading }] = useUploadMessageFileMutation();
 
   const [dialogType, setDialogType] = useState<"image" | "video" | "audio" | null>(null);
@@ -74,9 +81,10 @@ export function AddDropdown() {
 
     try {
       const formData = new FormData();
+      formData.append('receiverId', receiverId)
       files.forEach((file) => formData.append("files", file.blob));
 
-      const res = await addFile({ id, formData }).unwrap();
+      const res = await addFile(formData).unwrap();
 
       setFiles([]);
       toast.success("Files uploaded!");
@@ -84,7 +92,7 @@ export function AddDropdown() {
       if (res.success && res.data?.length) {
         res.data.forEach((item: any) => {
           socket.emit("sendMessage", {
-            workspaceId: item.workspaceId,
+            receiverId,
             message_file_url: item.fileUrl,
             type: item.type,
           });
@@ -210,8 +218,8 @@ export function AddDropdown() {
                 dialogType === "image"
                   ? "image/*"
                   : dialogType === "video"
-                  ? "video/*"
-                  : "audio/*"
+                    ? "video/*"
+                    : "audio/*"
               }
               onChange={handleFileSelect}
               className="hidden"

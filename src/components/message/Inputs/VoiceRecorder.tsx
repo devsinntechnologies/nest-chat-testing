@@ -1,10 +1,12 @@
 "use client";
 
-import { useUploadMessageFileMutation } from "@/hooks/UseWorkspace";
-import { getWorkspaceSocket } from "@/lib/workspaceSocket";
+import { useUploadMessageFileMutation } from "@/hooks/useChat";
+import { getSocket } from "@/lib/socket";
+import { RootState } from "@/store/store";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
 interface VoiceRecorderProps {
@@ -13,10 +15,13 @@ interface VoiceRecorderProps {
 }
 
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onCancel, setIsVoiceMode }) => {
-  const { id } = useParams();
-  const socket = getWorkspaceSocket();
-  const { status, startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ audio: true });
+ const { id } = useParams();
+  const senderId = useSelector((state: RootState) => state.authSlice.user?.id);
+  const [user1Id, user2Id] = (id as string).split('-').map(String);
+  const receiverId = senderId === user1Id ? user2Id : user1Id;
+  const socket = getSocket();
   const [addFile, { isLoading }] = useUploadMessageFileMutation();
+  const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ audio: true });
   const [isRecording, setIsRecording] = useState(false);
   const [recorded, setRecorded] = useState(false);
   const [time, setTime] = useState(0);
@@ -56,10 +61,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onCancel, setIsVoiceMode 
 
     try {
       const formData = new FormData();
+      formData.append('receiverId', receiverId)
       formData.append("files", blob, `voice_${Date.now()}.opus`);
       // formData.append("files", blob);
 
-      const res = await addFile({ id, formData }).unwrap();
+      const res = await addFile(formData).unwrap();
 
       toast.success("File uploaded!");
       setIsVoiceMode(false);
@@ -67,7 +73,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onCancel, setIsVoiceMode 
       if (res.success && res.data?.length) {
         res.data.forEach((item: any) => {
           socket.emit("sendMessage", {
-            workspaceId: item.workspaceId,
+            receiverId,
             message_file_url: item.fileUrl,
             type: item.type,
           });

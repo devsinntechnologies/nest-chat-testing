@@ -1,13 +1,11 @@
 "use client";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-// import { getSocket } from "@/lib/socket";
 import { BASE_URL_SOCKET } from "@/lib/constants";
 
 export const chat = createApi({
   reducerPath: "chat",
   baseQuery: fetchBaseQuery({
-    // baseUrl: `http://localhost:5000/chat/`,
     baseUrl: `${BASE_URL_SOCKET}/chat/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
@@ -40,6 +38,14 @@ export const chat = createApi({
         body: messageData,
       }),
     }),
+
+     uploadMessageFile: builder.mutation({
+      query: (formData) => ({
+        url: `/uploadMessageFile`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
 });
 
@@ -47,4 +53,5 @@ export const {
   useFetchChatsQuery,
   useFetchChatRoomQuery,
   useSendMessageMutation,
+  useUploadMessageFileMutation
 } = chat;

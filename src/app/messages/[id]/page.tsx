@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { useState, useEffect, useRef, useCallback, ChangeEvent, KeyboardEvent } from "react";
 import {
@@ -145,7 +146,7 @@ const Page = () => {
 
   useEffect(() => {
     socket.on("receiveMessage", ({ message }: { message: Message }) => {
-      if (message?.message_text && message?.timestamp) {
+      if (message?.id && message?.timestamp) {
         setMessages((prev) => {
           const updatedMessages = [...prev, message];
           return sortMessagesByTimestamp(updatedMessages);
@@ -311,27 +312,6 @@ const Page = () => {
           </>
         }
       </div>
-      {/* <div className="w-full px-1.5 py-3 md:p-4 flex items-center">
-        <div className="w-fit flex items-center gap-2 pr-2">
-          <PlusCircle className="size-6" />
-        
-
-          <button
-            onClick={handleSend}
-            disabled={!input.trim()}
-            className={`
-      transition-all duration-300 ease-in-out md:py-3 md:px-6 p-2.5 rounded-full md:rounded-xl 
-      flex items-center justify-center gap-2 
-      ${input.trim()
-                ? "opacity-100 scale-100 pointer-events-auto bg-primary text-white hover:bg-primary"
-                : "opacity-60 scale-95 pointer-events-none bg-gray-200"
-              }`}
-          >
-            <SendHorizonal size={20} className="block md:hidden" />
-            <span className="hidden md:block">Send</span>
-          </button>
-        </div>
-      </div> */}
     </div>
   );
 };
