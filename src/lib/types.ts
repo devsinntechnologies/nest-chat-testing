@@ -40,6 +40,7 @@ export interface MessageProps {
     message_text: string;
     message_file_url?: string;
     type: string;
+    editCount: number,
     timestamp: string;
     isRead?: boolean;
     allRead: boolean;

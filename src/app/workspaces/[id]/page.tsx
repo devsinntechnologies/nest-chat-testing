@@ -93,7 +93,7 @@ const WorkspaceChatPage = () => {
       senderId,
       content: input.trim(),
       timestamp: new Date().toISOString(),
-      type: "workspace",
+      type: "text",
     });
 
     setInput("");
@@ -148,13 +148,27 @@ const WorkspaceChatPage = () => {
 
   // Incoming message
   useEffect(() => {
-    const onMessage = ({ message }) => {
-      setMessages((prev) => sortMessages([...prev, message]));
+    const onMessage = ({ message }: { message: Message }) => {
+      setMessages((prev) => {
+        const index = prev.findIndex((m) => m.id === message.id);
+
+        let updatedMessages;
+
+        if (index !== -1) {
+          updatedMessages = [...prev];
+          updatedMessages[index] = message;
+        } else {
+          updatedMessages = [...prev, message];
+        }
+
+        return sortMessages(updatedMessages);
+      });
+
       scrollToBottom();
     };
 
     const onMessageReaded = ({ messageId, userId, readAt, user }) => {
-      
+
       setMessages((prev) => {
         const next = sortMessages(
           prev.map((msg) => {
