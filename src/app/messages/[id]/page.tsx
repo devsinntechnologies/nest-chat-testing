@@ -148,16 +148,29 @@ const Page = () => {
     socket.on("receiveMessage", ({ message }: { message: Message }) => {
       if (message?.id && message?.timestamp) {
         setMessages((prev) => {
-          const updatedMessages = [...prev, message];
+          const existsIndex = prev.findIndex((m) => m.id === message.id);
+
+          let updatedMessages;
+          if (existsIndex !== -1) {
+            // Message already exists -> replace it
+            updatedMessages = [...prev];
+            updatedMessages[existsIndex] = message;
+          } else {
+            // New message -> add it
+            updatedMessages = [...prev, message];
+          }
+
           return sortMessagesByTimestamp(updatedMessages);
         });
         scrollToBottom();
       }
     });
+
     return () => {
       socket.off("receiveMessage");
     };
   }, [socket, sortMessagesByTimestamp]);
+
 
   const handleSend = () => {
     if (input.trim()) {

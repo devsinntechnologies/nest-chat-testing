@@ -70,6 +70,7 @@ export interface SingleMessageProps {
     message_text: string,
     message_file_url?: string,
     timestamp: string,
+    editCount: number,
     Sender: {
       id: string,
       name: string,
