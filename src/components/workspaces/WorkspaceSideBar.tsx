@@ -240,6 +240,7 @@ const WorkspaceSideBar = () => {
                 if (!ws) return null;
 
                 const messageType = room.lastMessage?.type
+                const isDelete = room.lastMessage?.isDelete
                 const lastMsg = messageType === 'text' ? (room.lastMessage?.message_text || "No messages yet") : `[${messageType}]`;
                 const timestamp = room.lastMessage?.timestamp;
                 const unreadedCount = room.unreadMessages || 0;
@@ -277,9 +278,14 @@ const WorkspaceSideBar = () => {
                           <Lock className="w-4 h-4 text-muted-foreground" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {renderTyping(ws.id, lastMsg)}
-                      </p>
+                      {isDelete ? <span className="italic text-xs text-muted-foreground truncate">
+                        This message was deleted
+                      </span>
+                        :
+                        <p className="text-xs text-muted-foreground truncate">
+                          {renderTyping(ws.id, lastMsg)}
+                        </p>
+                      }
                     </div>
 
                     <MessageTimestamp

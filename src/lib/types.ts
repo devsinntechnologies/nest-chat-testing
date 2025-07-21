@@ -44,6 +44,7 @@ export interface MessageProps {
     timestamp: string;
     isRead?: boolean;
     allRead: boolean;
+    isDelete: boolean;
     Sender?: {
       id?: string;
       name?: string;
