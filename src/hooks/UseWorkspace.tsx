@@ -81,6 +81,12 @@ export const workspace = createApi({
         method: "DELETE",
       }),
     }),
+    leaveWorkspace: builder.mutation({
+      query: ({ id }) => ({
+        url: `/leaveWorkspace/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -95,6 +101,7 @@ export const {
   useUpdateWorkspaceMutation,
   useUpdateWorkspacePictureMutation,
   useDeleteMemberByIdMutation,
+  useLeaveWorkspaceMutation,
   useUpdateMembertypeMutation,
   useUploadMessageFileMutation
 } = workspace;

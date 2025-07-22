@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { BASE_IMAGE } from '@/lib/constants';
 import { useUpdateWorkspaceMutation, useUpdateWorkspacePictureMutation } from '@/hooks/UseWorkspace';
 import CropModal from '../../Modal/CropModal';
+import LeaveWorkspaceAlert from './LeaveWorkspaceAlert';
 
 const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetchWorkspace: () => void }) => {
   const [updateWorkspaceImage, { isLoading: workspaceImageLoading }] = useUpdateWorkspacePictureMutation();
@@ -77,7 +78,7 @@ const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetc
         <CropModal
           imageSrc={previewUrl}
           onCancel={() => setShowCropper(false)}
-          onCrop={(croppedBlob) => {
+          onCrop={(croppedBlob: any) => {
             setCropData(croppedBlob);
             uploadImage(croppedBlob);
             setShowCropper(false);
@@ -204,6 +205,7 @@ const WorkspaceInfo = ({ workspace, refetchWorkspace }: { workspace: any, refetc
               Creator
             </Badge>
           </div>
+          <LeaveWorkspaceAlert/>
         </div>
         )}
     </>
