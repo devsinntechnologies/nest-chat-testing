@@ -18,23 +18,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical, PenBox, Trash2 } from "lucide-react";
 
-
 const Message: React.FC<SingleMessageProps> = ({ msg }) => {
-  const socket = getSocket()
+  const socket = getSocket();
   const senderId = useSelector(
     (state: RootState) => state.authSlice?.user?.id
   );
-
 
   const [expanded, setExpanded] = useState(false);
 
   const isSender = msg?.Sender?.id === senderId;
 
-
   const handleToggleExpand = () => setExpanded(!expanded);
 
   const handleEdit = (id: string, currentText: string) => {
-    // You might show a modal/input here to edit text
     const newText = prompt("Edit your message:", currentText);
     if (!newText || newText === currentText) return;
 
@@ -47,61 +43,60 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
     socket.emit("deleteMessage", { id });
   };
 
-
   return (
-    <>
+    <div
+      className={`flex mb-3 items-end ${isSender ? "justify-end" : "justify-start"}`}
+    >
+      {!isSender && (
+        <Avatar className="w-8 h-8 mr-1">
+          <AvatarImage
+            src={
+              msg.Sender?.imageUrl
+                ? `${BASE_IMAGE}${msg.Sender.imageUrl}`
+                : ""
+            }
+            alt={msg.Sender?.name || "User"}
+          />
+          <AvatarFallback>
+            {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
+          </AvatarFallback>
+        </Avatar>
+      )}
+
+      {/* Edit/Delete menu only if NOT deleted */}
+      {isSender && !msg.isDelete && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="outline-0">
+            <button className="relative top-0 p-1 rounded text-primary">
+              <EllipsisVertical className="size-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={() => handleEdit(msg.id, msg.message_text)}
+            >
+              <PenBox /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDelete(msg.id)}>
+              <Trash2 /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
       <div
-        className={`flex mb-3 items-end ${isSender ? "justify-end" : "justify-start"
+        className={`p-3 text-sm rounded-2xl max-w-[75%] relative ${isSender
+            ? "bg-primary text-white rounded-br-none"
+            : "bg-muted text-black rounded-bl-none"
           }`}
       >
-        {!isSender && (
-          <Avatar className="w-8 h-8 mr-1">
-            <AvatarImage
-              src={
-                msg.Sender?.imageUrl
-                  ? `${BASE_IMAGE}${msg.Sender.imageUrl}`
-                  : ""
-              }
-              alt={msg.Sender?.name || "User"}
-            />
-            <AvatarFallback>
-              {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
-        )}
-
-        {isSender && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="outline-0">
-              <button className="relative top-0 p-1 rounded text-primary">
-                <EllipsisVertical className="size-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() => handleEdit(msg.id, msg.message_text)}
-              >
-                <PenBox/> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleDelete(msg.id)}
-              >
-                <Trash2/>
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {["image", "video", "audio"].includes(msg.type) ? (
-          <div
-            className={`space-y-2 bg-gray-200 p-3 text-sm rounded-2xl max-w-[75%] relative ${isSender
-              ? "bg-gray-800 text-white rounded-br-none"
-              : "bg-muted text-black rounded-bl-none"
-              }`}
-          >
+        {msg.isDelete ? (
+          <p className="italic text-muted-foreground">
+            This message was deleted
+          </p>
+        ) : ["image", "video", "audio"].includes(msg.type) ? (
+          <>
             {msg.type === "image" && (
-              // <div className="w-full h-75 flex items-center justify-center">
               <Image
                 src={`${BASE_IMAGE}${msg.message_file_url}`}
                 alt="Uploaded Image"
@@ -109,7 +104,6 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
                 width={400}
                 height={400}
               />
-              // </div>
             )}
             {msg.type === "video" && (
               <VideoPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />
@@ -117,65 +111,55 @@ const Message: React.FC<SingleMessageProps> = ({ msg }) => {
             {msg.type === "audio" && (
               <AudioPlayer src={`${BASE_IMAGE}${msg.message_file_url}`} />
             )}
-            <p className="whitespace-pre-wrap break-words">
+            <p className="whitespace-pre-wrap break-words mt-1">
               {expanded || msg.message_text.length <= 250
                 ? msg.message_text
                 : msg.message_text.slice(0, 250) + "..."}
             </p>
-            <div className="text-[10px] text-right text-gray-500 mt-1 flex items-center justify-end gap-1">
-              {new Date(msg.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-          </div>
+          </>
         ) : (
-          <div
-            className={`p-3 text-sm rounded-2xl max-w-[75%] relative ${isSender
-              ? "bg-primary text-white rounded-br-none"
-              : "bg-muted text-black rounded-bl-none"
-              }`}
-          >
-            <p className="whitespace-pre-wrap break-words">
-              {expanded || msg.message_text.length <= 250
-                ? msg.message_text
-                : msg.message_text.slice(0, 250) + "..."}
-            </p>
-            {msg.message_text.length > 250 && (
-              <button
-                onClick={handleToggleExpand}
-                className="text-xs mt-1 cursor-pointer"
-              >
-                {expanded ? "See less" : "See more"}
-              </button>
-            )}
-            <div className="text-[10px] text-right text-gray-300 mt-1 flex items-center justify-end gap-1">
-             <p>{msg.editCount > 0 && "(edited)"}</p>
-              {new Date(msg.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-          </div>
+          <p className="whitespace-pre-wrap break-words">
+            {expanded || msg.message_text.length <= 250
+              ? msg.message_text
+              : msg.message_text.slice(0, 250) + "..."}
+          </p>
         )}
 
-        {isSender && (
-          <Avatar className="w-8 h-8 ml-1">
-            <AvatarImage
-              src={
-                msg.Sender?.imageUrl
-                  ? `${BASE_IMAGE}${msg.Sender.imageUrl}`
-                  : ""
-              }
-              alt={msg.Sender?.name || "User"}
-            />
-            <AvatarFallback>
-              {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
+        {/* See more/less only if not deleted */}
+        {!msg.isDelete && msg.message_text.length > 250 && (
+          <button
+            onClick={handleToggleExpand}
+            className="text-xs mt-1 cursor-pointer"
+          >
+            {expanded ? "See less" : "See more"}
+          </button>
         )}
+
+        <div className="text-[10px] text-right text-gray-300 mt-1 flex items-center justify-end gap-1">
+          {!msg.isDelete && msg.editCount > 0 && <p>(edited)</p>}
+          {new Date(msg.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
       </div>
-    </>
+
+      {isSender && (
+        <Avatar className="w-8 h-8 ml-1">
+          <AvatarImage
+            src={
+              msg.Sender?.imageUrl
+                ? `${BASE_IMAGE}${msg.Sender.imageUrl}`
+                : ""
+            }
+            alt={msg.Sender?.name || "User"}
+          />
+          <AvatarFallback>
+            {msg.Sender?.name?.charAt(0).toUpperCase() || "?"}
+          </AvatarFallback>
+        </Avatar>
+      )}
+    </div>
   );
 };
 

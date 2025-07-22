@@ -20,6 +20,7 @@ type Message = {
   receiverId: string;
   message_text: string;
   type: string;
+  isDelete: boolean;
   timestamp: string;
 };
 
@@ -202,6 +203,7 @@ const MessageSideBar = () => {
         <div className="w-full">
           {!isLoading && !isError && filteredRooms.length > 0 && (
             filteredRooms.map((room) => {
+              const isDelete = room.lastMessage?.isDelete;
               const isSender = room.lastMessage?.senderId === userId;
               const messageContent =
                 room.lastMessage?.type === "text"
@@ -235,9 +237,14 @@ const MessageSideBar = () => {
                     <h1 className="font-medium text-black text-base truncate">
                       {room.roomName || "Chat"}
                     </h1>
-                    <h2 className="text-secondary text-sm truncate">
+                      {isDelete ? <span className="italic text-xs text-muted-foreground truncate">
+                        This message was deleted
+                      </span>
+                        :
+                        <h2 className="text-secondary text-sm truncate">
                       {isSender ? `You: ${messageContent}` : messageContent}
                     </h2>
+                      }
                   </div>
 
                   <MessageTimestamp

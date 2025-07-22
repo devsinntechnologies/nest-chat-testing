@@ -71,6 +71,7 @@ export interface SingleMessageProps {
     type: string,
     message_text: string,
     message_file_url?: string,
+    isDelete: boolean;
     timestamp: string,
     editCount: number,
     Sender: {
