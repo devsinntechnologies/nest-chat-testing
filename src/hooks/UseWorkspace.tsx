@@ -14,6 +14,12 @@ export const workspace = createApi({
     },
   }),
   endpoints: (builder) => ({
+    searchMessages: builder.query({
+      query: (params) => {
+        const queryString = new URLSearchParams(params).toString();
+        return `search?${queryString}`;
+      },
+    }),
     getPublicWorkspaces: builder.query({
       query: ({ pageNo, pageSize }) => `/public?pageNo=${pageNo}&pageSize=${pageSize}`,
     }),
@@ -91,6 +97,7 @@ export const workspace = createApi({
 });
 
 export const {
+  useSearchMessagesQuery,
   useGetPublicWorkspacesQuery,
   useGetPrivateWorkspacesQuery,
   useJoinWorkspaceMutation,

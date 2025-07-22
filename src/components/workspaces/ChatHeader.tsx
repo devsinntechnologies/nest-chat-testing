@@ -18,6 +18,7 @@ import { useSelector } from 'react-redux';
 import MembersDialog from './MembersDialog';
 import WorkspaceInfo from './WorkspaceInfo';
 import WorkspaceInfos from './workspaceInfo/WorkspaceInfos';
+import { SearchMessage } from './SearchMessage';
 
 interface ChatHeaderProps {
   workspace: any;
@@ -34,6 +35,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoa
   const [typingUsers, setTypingUsers] = useState([]);
   const [membersOpen, setMembersOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (propWorkspace) {
@@ -109,13 +111,20 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ workspace: propWorkspace, isLoa
           <DropdownMenuItem onClick={() => setInfoOpen(true)}>
             View Info
           </DropdownMenuItem>
-          <DropdownMenuItem>Search Messages</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setSearchOpen(true)}>
+            Search Messages
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       {workspace && (
         <>
           <WorkspaceInfos open={infoOpen} onOpenChange={setInfoOpen} workspace={workspace} refetchWorkspace={refetchWorkspace} />
+        </>
+      )}
+      {workspace && (
+        <>
+          <SearchMessage open={searchOpen} onOpenChange={setSearchOpen} />
         </>
       )}
     </div>

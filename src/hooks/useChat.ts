@@ -16,6 +16,13 @@ export const chat = createApi({
     },
   }),
   endpoints: (builder) => ({
+    searchMessages: builder.query({
+      query: (params) => {
+        const queryString = new URLSearchParams(params).toString();
+        return `search?${queryString}`;
+      },
+    }),
+
     fetchChats: builder.query({
       query: () => `/chatRooms/`,
     }),
@@ -50,6 +57,7 @@ export const chat = createApi({
 });
 
 export const {
+  useSearchMessagesQuery,
   useFetchChatsQuery,
   useFetchChatRoomQuery,
   useSendMessageMutation,

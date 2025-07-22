@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Skeleton } from '../ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
@@ -8,42 +8,46 @@ import { RootState } from '@/store/store'
 import { getWorkspaceSocket } from '@/lib/workspaceSocket'
 import { BASE_IMAGE } from '@/lib/constants'
 import { getSocket } from '@/lib/socket'
+import { SearchMessage } from './SearchMessage'
 
 interface ChatHeaderProps {
-  isLoading: boolean, 
+  isLoading: boolean,
   receiver: {
     name: string,
     imageUrl: string
   } | null
 }
 
-const ChatHeader:React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
   // const userId = useSelector((state: RootState) => state.authSlice.user?.id);
   const router = useRouter();
   const socket = getSocket();
-  const [ typing, setTyping ] = useState(false)
+  const [typing, setTyping] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => {  
-      socket.on("typing", () => {
-        setTyping(true);
-      });
-  
-      socket.on("stopTyping", () => {
-        setTyping(false);
-      });
-  
-      return () => {
-        socket.off("typing");
-        socket.off("stopTyping");
-      };
-    }, [socket]);
 
-    const handleBack = () => {
+  useEffect(() => {
+    socket.on("typing", () => {
+      setTyping(true);
+    });
+
+    socket.on("stopTyping", () => {
+      setTyping(false);
+    });
+
+    return () => {
+      socket.off("typing");
+      socket.off("stopTyping");
+    };
+  }, [socket]);
+
+  const handleBack = () => {
     router.push("/messages/");
   };
 
   return (
-     <div className="flex items-center gap-2 p-4 bg-white border-b-2 shadow-md">
+    <div className='flex items-center justify-between gap-2 p-4 bg-white border-b-2 shadow-md'>
+      <div className="flex items-center gap-2">
         <button
           onClick={handleBack}
           className="text-gray-600 mr-2 hover:text-black"
@@ -88,6 +92,13 @@ const ChatHeader:React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
           </div>
         )}
       </div>
+      <Search className='cursor-pointer' onClick={() => setSearchOpen(true)} />
+      {receiver && (
+        <>
+          <SearchMessage open={searchOpen} onOpenChange={setSearchOpen} />
+        </>
+      )}
+    </div>
   )
 }
 
