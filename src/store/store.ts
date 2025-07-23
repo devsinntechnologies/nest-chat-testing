@@ -4,6 +4,7 @@ import { auth } from '@/hooks/UseAuth';
 import { authSlice } from '@/slice/authSlice';
 import { chat } from '@/hooks/useChat';
 import { networkSlice } from '@/slice/networkSlice';
+import { callSlice } from '@/slice/callSlice';
 import { workspace } from '@/hooks/UseWorkspace';
 
 export const makeStore = () => {
@@ -11,6 +12,7 @@ export const makeStore = () => {
     reducer: {
       authSlice: authSlice.reducer,
       networkSlice: networkSlice.reducer,
+      callSlice: callSlice.reducer,
       [auth.reducerPath]: auth.reducer,
       [chat.reducerPath]: chat.reducer,
       [workspace.reducerPath]: workspace.reducer,

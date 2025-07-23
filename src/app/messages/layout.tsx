@@ -9,6 +9,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useMediaQuery } from "@/hooks/UseMediaQuery";
+import CallListener from "@/components/message/Calling/CallListener";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -51,7 +52,9 @@ function RootLayout({ children }: RootLayoutProps) {
           <ResizableHandle />
           <ResizablePanel defaultSize={75} maxSize={contentSize} minSize={50}>
             <Suspense fallback={"loading..."}>
-              <div className="flex flex-1 w-max-[90%]">{children}</div>
+              <div className="flex flex-1 w-max-[90%]">
+              <CallListener/>
+                {children}</div>
             </Suspense>
           </ResizablePanel>
         </ResizablePanelGroup>

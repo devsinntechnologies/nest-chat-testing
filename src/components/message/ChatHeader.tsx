@@ -2,20 +2,16 @@ import { ArrowLeft, Search } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Skeleton } from '../ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
-import { RootState } from '@/store/store'
-import { getWorkspaceSocket } from '@/lib/workspaceSocket'
 import { BASE_IMAGE } from '@/lib/constants'
 import { getSocket } from '@/lib/socket'
 import { SearchMessage } from './SearchMessage'
+import Calling from './Calling/Calling'
+import { User } from '@/lib/types'
 
 interface ChatHeaderProps {
   isLoading: boolean,
-  receiver: {
-    name: string,
-    imageUrl: string
-  } | null
+  receiver: User | null
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
@@ -92,11 +88,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ isLoading, receiver }) => {
           </div>
         )}
       </div>
+       <div className='w-fit flex gap-4 items-center'>
+        <Calling receiver={receiver}/>
       <Search className='cursor-pointer' onClick={() => setSearchOpen(true)} />
+       </div>
       {receiver && (
-        <>
           <SearchMessage open={searchOpen} onOpenChange={setSearchOpen} />
-        </>
       )}
     </div>
   )
