@@ -1,9 +1,12 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Phone, Video, ShieldAlert } from 'lucide-react';
+import { Phone, Video } from 'lucide-react';
 import { RootState } from '@/store/store';
 import { User } from '@/lib/types';
 import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
 import VideoCall from './VideoCall';
 import AudioCall from './AudioCall';
 import PermissionDialog from './PermissionDialog';
@@ -15,49 +18,45 @@ interface CallingProps {
 
 const Calling: React.FC<CallingProps> = ({ receiver }) => {
   const user = useSelector((state: RootState) => state.authSlice.user);
-  const [isCall, setIsCall] = useState<boolean>(false)
-  const [audioCall, setAudioCall] = useState<boolean>(false)
-  const [videoCall, setVideoCall] = useState<boolean>(false)
-  const [permissionPopup, setPermissionPopup] = useState<boolean>(false)
+  const [isCall, setIsCall] = useState(false);
+  const [audioCall, setAudioCall] = useState(false);
+  const [videoCall, setVideoCall] = useState(false);
+  const [permissionPopup, setPermissionPopup] = useState(false);
   const [isCheckingMedia, setIsCheckingMedia] = useState(false);
-  const [permissions, setPermissions] = useState({
-    mic: 'prompt',
-    cam: 'prompt',
-  });
+  const [remoteSDP, setRemoteSDP] = useState<any>(null);
+
+  const permissions = usePermissionState(isCall);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const checkPermissions = async () => {
+    const audio = searchParams.get("audio");
+    const offer = searchParams.get("off");
+
+    if (audio === "1" && offer) {
       try {
-        const micStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        const camStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-
-        setPermissions({
-          mic: micStatus.state,
-          cam: camStatus.state,
-        });
-
-        micStatus.onchange = () => setPermissions((p) => ({ ...p, mic: micStatus.state }));
-        camStatus.onchange = () => setPermissions((p) => ({ ...p, cam: camStatus.state }));
+        setIsCall(true);
+        setAudioCall(true);
+        toast.success("Incoming audio call detected");
       } catch (err) {
-        console.warn("Permission API not supported", err);
+        console.error("Failed to parse SDP offer", err);
       }
-    };
-
-    checkPermissions();
-  }, [isCall]);
+    }
+  }, [searchParams]);
 
   const handleAudioCall = async () => {
     if (!receiver || !user) return toast.error("Missing user info");
-    setIsCall(true)
-    setAudioCall(true)
+
+    setIsCall(true);
+    setAudioCall(true);
+
     try {
       setIsCheckingMedia(true);
       toast.success("Microphone access granted");
     } catch (error) {
-      setIsCall(false)
-      setAudioCall(false)
+      setIsCall(false);
+      setAudioCall(false);
       toast.error("Microphone access denied or unavailable.");
-      setPermissionPopup(true)
+      setPermissionPopup(true);
     } finally {
       setIsCheckingMedia(false);
     }
@@ -65,20 +64,31 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
 
   const handleVideoCall = async () => {
     if (!receiver || !user) return toast.error("Missing user info");
-    setIsCall(true)
-    setVideoCall(true)
+
+    setIsCall(true);
+    setVideoCall(true);
+
     try {
       setIsCheckingMedia(true);
       toast.success("Camera & Mic access granted");
     } catch (error) {
-      setIsCall(false)
-      setAudioCall(false)
+      setIsCall(false);
+      setVideoCall(false);
       toast.error("Camera or microphone access denied.");
-      setPermissionPopup(true)
-
+      setPermissionPopup(true);
     } finally {
       setIsCheckingMedia(false);
     }
+  };
+
+  const closeCallDialog = () => {
+    setIsCall(false);
+    setAudioCall(false);
+    setVideoCall(false);
+    setRemoteSDP(null);
+
+    const cleanURL = window.location.pathname;
+    window.history.replaceState({}, "", cleanURL);
   };
 
   return (
@@ -102,28 +112,57 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
         </button>
       </div>
 
-      {/* Show permission warning */}
       {permissionPopup && <PermissionDialog open={permissionPopup} setOpen={setPermissionPopup} />}
-      {user && receiver && isCall && !permissionPopup &&
-        <Dialog open={isCall} onOpenChange={() => {
-          setIsCall(!isCall);
-          setAudioCall(!audioCall);
-          setVideoCall(!videoCall);
-        }}>
-          <DialogContent className='w-200'
+
+      {user && receiver && isCall && !permissionPopup && (
+        <Dialog open={isCall} onOpenChange={closeCallDialog}>
+          <DialogContent
+            className="w-200"
             onInteractOutside={(e) => e.preventDefault()}
-            onEscapeKeyDown={(e) => e.preventDefault()}>
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             {videoCall && <VideoCall />}
-            {audioCall && <AudioCall receiver={receiver} endCall={() => {
-              setIsCall(!isCall);
-              setAudioCall(!audioCall);
-              setVideoCall(!videoCall);
-            }} />}
+            {audioCall && (
+              <AudioCall
+                receiver={receiver}
+                endCall={closeCallDialog}
+              />
+            )}
           </DialogContent>
         </Dialog>
-      }
+      )}
     </div>
   );
 };
 
 export default Calling;
+
+function usePermissionState(isCall: boolean) {
+  const [permissions, setPermissions] = useState({
+    mic: 'prompt',
+    cam: 'prompt',
+  });
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const micStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        const camStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+
+        setPermissions({
+          mic: micStatus.state,
+          cam: camStatus.state,
+        });
+
+        micStatus.onchange = () => setPermissions((p) => ({ ...p, mic: micStatus.state }));
+        camStatus.onchange = () => setPermissions((p) => ({ ...p, cam: camStatus.state }));
+      } catch (err) {
+        console.warn("Permission API not supported", err);
+      }
+    };
+
+    if (isCall) checkPermissions();
+  }, [isCall]);
+
+  return permissions;
+}
