@@ -1,4 +1,3 @@
-// components/CallListener.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -20,14 +19,16 @@ interface IncomingCall {
 }
 
 export default function CallListener() {
-  const socket = getSocket()
+  const socket = getSocket();
   const [call, setCall] = useState<IncomingCall | null>(null);
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    socket.on("offer", (data: { from: User; sdp: any, roomId:string} ) => {
+    const handleOffer = (data: { type?: string; from: User; sdp: any; roomId: string }) => {
+      if (data.type === "negotiation") return;
+
       setCall({
         from: data.from.id,
         sdp: data.sdp,
@@ -40,21 +41,29 @@ export default function CallListener() {
       if (!ringtoneRef.current) {
         const audio = new Audio("/incoming.mp3");
         audio.loop = true;
-        audio.play();
+        audio.play().catch((err) => console.error("Audio play failed:", err));
         ringtoneRef.current = audio;
       }
-    });
+    };
+
+    socket.on("offer", handleOffer);
 
     return () => {
-      socket.off("offer");
+      socket.off("offer", handleOffer);
       ringtoneRef.current?.pause();
+      ringtoneRef.current = null;
     };
   }, [socket]);
 
-  const acceptCall = () => {
+  const cleanup = () => {
     ringtoneRef.current?.pause();
+    ringtoneRef.current = null;
+    setCall(null);
+  };
 
-    // Store call data
+  const acceptCall = () => {
+    cleanup();
+
     const callData = {
       peerId: call?.from,
       sdp: call?.sdp,
@@ -62,20 +71,15 @@ export default function CallListener() {
       image: call?.callerImage,
     };
 
-    // Option 1: Redux
     dispatch(setCallData(callData));
-
-    // Option 2: sessionStorage
     sessionStorage.setItem("call", JSON.stringify(callData));
 
-    // Redirect
-    router.push(`/messages/${call?.roomId}?audio=1&off=${JSON.stringify(call?.sdp)}`);
+    router.push(`/messages/${call?.roomId}?audio=1`);
   };
 
   const rejectCall = () => {
-    ringtoneRef.current?.pause();
+    cleanup();
     socket.emit("end-call", { to: call?.from });
-    setCall(null);
   };
 
   if (!call) return null;
@@ -84,7 +88,7 @@ export default function CallListener() {
     <div className="fixed top-4 right-4 z-50 w-[300px] bg-white border shadow-xl rounded-xl p-4">
       <div className="flex items-center gap-3">
         <Avatar>
-          <AvatarImage src={BASE_IMAGE+call.callerImage} />
+          <AvatarImage src={BASE_IMAGE + call.callerImage} />
           <AvatarFallback>{call.callerName[0]}</AvatarFallback>
         </Avatar>
         <div>

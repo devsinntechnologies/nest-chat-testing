@@ -32,7 +32,7 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
     const audio = searchParams.get("audio");
     const offer = searchParams.get("off");
 
-    if (audio === "1" && offer) {
+    if (audio === "1") {
       try {
         setIsCall(true);
         setAudioCall(true);
@@ -117,7 +117,7 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
       {user && receiver && !permissionPopup && (
         <Dialog open={isCall} onOpenChange={closeCallDialog}>
           <DialogContent
-            className="w-250"
+            className="w-[90%] md:max-w-[90%]"
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >

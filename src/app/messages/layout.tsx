@@ -8,8 +8,10 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { PeerProvider } from "@/context/PeerContext";
 import { useMediaQuery } from "@/hooks/UseMediaQuery";
 import CallListener from "@/components/message/Calling/CallListener";
+import Child from "./Child";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -22,6 +24,7 @@ function RootLayout({ children }: RootLayoutProps) {
       disconnectSocket();
     };
   }, []);
+
 
   const isXl = useMediaQuery("(min-width: 1280px)");
   const isLg = useMediaQuery("(min-width: 1024px)");
@@ -40,7 +43,7 @@ function RootLayout({ children }: RootLayoutProps) {
   }, [isXl, isLg]);
 
   return (
-    <>
+    <PeerProvider>
       {isDesktop ? (
         <ResizablePanelGroup
           direction="horizontal"
@@ -53,8 +56,10 @@ function RootLayout({ children }: RootLayoutProps) {
           <ResizablePanel defaultSize={75} maxSize={contentSize} minSize={50}>
             <Suspense fallback={"loading..."}>
               <div className="flex flex-1 w-max-[90%]">
-              <CallListener/>
-                {children}</div>
+                <CallListener />
+                 <Child>
+                {children}
+              </Child></div>
             </Suspense>
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -62,11 +67,13 @@ function RootLayout({ children }: RootLayoutProps) {
         <div className="flex w-full h-screen flex-col md:flex-row">
           <MessageSideBar />
           <Suspense fallback={"loading..."}>
-            <div className="flex flex-1 w-max-[90%]">{children}</div>
+            <div className="flex flex-1 w-max-[90%]"> <Child>
+                {children}
+              </Child></div>
           </Suspense>
         </div>
       )}
-    </>
+    </PeerProvider>
   );
 }
 export default withAuth(RootLayout);
