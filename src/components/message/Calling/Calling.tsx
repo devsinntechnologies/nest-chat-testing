@@ -117,7 +117,7 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
       {user && receiver && !permissionPopup && (
         <Dialog open={isCall} onOpenChange={closeCallDialog}>
           <DialogContent
-            className="w-200"
+            className="w-250"
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >

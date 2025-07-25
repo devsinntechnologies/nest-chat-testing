@@ -28,8 +28,6 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
   const [connectionState, setConnectionState] = useState("Not Connected");
   const [callTime, setCallTime] = useState(0);
 
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const [isMicOn, setIsMicOn] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -38,6 +36,10 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const callTimerRef = useRef<NodeJS.Timer | null>(null);
 
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
 
   const [offerSDP, setOfferSDP] = useState("");
@@ -132,6 +134,57 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
       setIsVideoOn(videoTrack.enabled);
     }
   };
+
+  const startScreenShare = async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+
+      screenStreamRef.current = screenStream;
+
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      const sender = peerConnection.current?.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) {
+        await sender.replaceTrack(screenTrack);
+      }
+
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = screenStream;
+      }
+
+      setIsScreenSharing(true);
+
+      screenTrack.onended = () => {
+        stopScreenShare();
+      };
+    } catch (err) {
+      console.error("Error sharing screen:", err);
+    }
+  };
+
+  const stopScreenShare = async () => {
+    if (!mediaStreamRef.current) return;
+
+    const cameraTrack = mediaStreamRef.current.getVideoTracks()[0];
+
+    const sender = peerConnection.current?.getSenders().find(s => s.track?.kind === 'video');
+    if (sender && cameraTrack) {
+      await sender.replaceTrack(cameraTrack);
+    }
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = mediaStreamRef.current;
+    }
+
+    screenStreamRef.current?.getTracks().forEach(track => track.stop());
+    screenStreamRef.current = null;
+
+    setIsScreenSharing(false);
+  };
+
+
 
   const cleanup = () => {
     stopCallTimer();
@@ -264,8 +317,16 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
           )}
         </Button>
 
+        <Button
+          variant={isScreenSharing ? "destructive" : "outline"}
+          onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+        >
+          {isScreenSharing ? "Stop Sharing" : "Share Screen"}
+        </Button>
+
+
         <Button variant="destructive" onClick={handleEndCall}>
-          <PhoneOff className="mr-2" /> End Call
+          <PhoneOff className="mr-2" />
         </Button>
         <Button variant="secondary" onClick={createOffer}>
           <PhoneOutgoingIcon className="mr-2" /> Start Call
