@@ -114,7 +114,7 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
 
       {permissionPopup && <PermissionDialog open={permissionPopup} setOpen={setPermissionPopup} />}
 
-      {user && receiver && isCall && !permissionPopup && (
+      {user && receiver && !permissionPopup && (
         <Dialog open={isCall} onOpenChange={closeCallDialog}>
           <DialogContent
             className="w-200"
@@ -122,12 +122,10 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
             onEscapeKeyDown={(e) => e.preventDefault()}
           >
             {videoCall && <VideoCall />}
-            {audioCall && (
-              <AudioCall
-                receiver={receiver}
-                endCall={closeCallDialog}
-              />
-            )}
+            <AudioCall
+              receiver={receiver}
+              endCall={closeCallDialog}
+            />
           </DialogContent>
         </Dialog>
       )}
