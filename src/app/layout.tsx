@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Child from "./Child";
 import { ReactNode } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // const inter = Inter({ subsets: ["latin"] });
 // const urbanist = Urbanist({ subsets: ["latin"] });
@@ -18,7 +19,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Next JS Official",
+  title: "Onplo Chat App",
   description: "",
 };
 
@@ -40,22 +41,24 @@ export default function RootLayout({ children }: RootLayoutProps) {
         className={`${poppins.className} w-screen min-h-screen`}
         suppressHydrationWarning
       >
-        <Provider>
+        <TooltipProvider>
+          <Provider>
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
               enableSystem
               disableTransitionOnChange
             >
-                <Child>{children}</Child>
+              <Child>{children}</Child>
             </ThemeProvider>
-          <Toaster
-            expand={false}
-            position="bottom-right"
-            richColors
-            closeButton
-          />
-        </Provider>
+            <Toaster
+              expand={false}
+              position="bottom-right"
+              richColors
+              closeButton
+            />
+          </Provider>
+        </TooltipProvider>
       </body>
     </html>
   );

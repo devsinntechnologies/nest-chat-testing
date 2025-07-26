@@ -1,6 +1,5 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Mic,
   MicOff,
@@ -9,8 +8,16 @@ import {
   VolumeX,
   Video,
   VideoOff,
-  PhoneOutgoingIcon,
+  Monitor,
+  MonitorOff,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getSocket } from "@/lib/socket";
 import { User } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
@@ -27,19 +34,18 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
     addTracks,
     createOffer,
     setRemoteDescription,
-    closeConnection,
   } = usePeer();
 
   const socket = getSocket();
   const searchParams = useSearchParams();
-  const audio = searchParams.get('audio')
-  const [isCallActive, setIsCallActive] = useState(false);
+  const audio = searchParams.get("audio");
+
   const [connectionState, setConnectionState] = useState<string>("Not Connected");
   const [callTime, setCallTime] = useState<number>(0);
-  const [isMicOn, setIsMicOn] = useState<boolean>(true);
-  const [isSpeakerOn, setIsSpeakerOn] = useState<boolean>(true);
-  const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
-  const [isScreenSharing, setIsScreenSharing] = useState<boolean>(false);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,18 +93,18 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
         }
       };
 
-      socket.on("offer", async ({ sdp }: { sdp: RTCSessionDescriptionInit }) => {
+      socket.on("offer", async ({ sdp }) => {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         socket.emit("answer", { to: receiver?.id, sdp: answer });
       });
 
-      socket.on("answer", async ({ sdp }: { sdp: RTCSessionDescriptionInit }) => {
+      socket.on("answer", async ({ sdp }) => {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
       });
 
-      socket.on("ice-candidate", async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
+      socket.on("ice-candidate", async ({ candidate }) => {
         if (candidate) {
           await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         }
@@ -116,18 +122,15 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
 
   const createCallOffer = useCallback(async () => {
     if (!peerConnection) return;
-    console.log(peerConnection, "createcalloff")
     const offer = await createOffer();
     socket.emit("offer", { to: receiver?.id, sdp: offer });
-  }, [peerConnection])
+  }, [peerConnection]);
 
   useEffect(() => {
-    if (audio === "1") {
-      return
-    } else {
-      createCallOffer()
+    if (audio !== "1") {
+      createCallOffer();
     }
-  }, [audio, createCallOffer])
+  }, [audio, createCallOffer]);
 
   const startCallTimer = () => {
     if (!callTimerRef.current) {
@@ -152,9 +155,8 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
     socket.off("offer");
     socket.off("answer");
     socket.off("ice-candidate");
-    endCall()
+    endCall();
   };
-
 
   const toggleMic = () => {
     const audioTrack = mediaStreamRef.current?.getAudioTracks()[0];
@@ -223,33 +225,89 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
 
   return (
     <div className="w-full h-[92%] flex flex-col bg-black text-white">
-       <h2 className="text-xl font-semibold text-gray-700">
-        Audio Call in Progress... {connectionState}
-      </h2>
-      <div className="flex-1 grid grid-cols-2 md:grid-cols-2 gap-2 p-4">
-        <video ref={localVideoRef} className="rounded-xl border-2 border-green-600 object-cover w-full h-full" autoPlay muted playsInline />
-        <video ref={remoteVideoRef} className="rounded-xl border-2 border-blue-500 object-cover w-full h-full" autoPlay playsInline />
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-2 bg-gray-900 border-b border-gray-700">
+        <div>
+          <h2 className="text-lg font-semibold">{receiver?.name || "Unknown User"}</h2>
+          <p className="text-sm text-gray-400">
+            {connectionState} · {Math.floor(callTime / 60)}:
+            {(callTime % 60).toString().padStart(2, "0")}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center justify-center gap-6 py-4 border-t border-gray-700 bg-gray-900">
-        <Button onClick={toggleMic} variant="ghost">
-          {isMicOn ? <Mic className="text-green-500" /> : <MicOff className="text-red-500" />}
-        </Button>
-        <Button onClick={toggleVideo} variant="ghost">
-          {isVideoOn ? <Video className="text-green-500" /> : <VideoOff className="text-red-500" />}
-        </Button>
-        <Button onClick={toggleSpeaker} variant="ghost">
-          {isSpeakerOn ? <Volume2 className="text-blue-500" /> : <VolumeX className="text-gray-400" />}
-        </Button>
-        <Button onClick={isScreenSharing ? stopScreenShare : shareScreen} variant="ghost">
-          {isScreenSharing ? "Stop Share" : "Share Screen"}
-        </Button>
-        <Button onClick={cleanup} variant="destructive" className="rounded-full bg-red-600 hover:bg-red-700 p-3">
-          <PhoneOff className="text-white" />
-        </Button>
+      {/* Video Section */}
+      <div className="flex-1 grid grid-cols-2 gap-4 p-4">
+        {[localVideoRef, remoteVideoRef].map((ref, i) => (
+          <div key={i} className="relative w-full h-full rounded-xl overflow-hidden border-2 border-gray-600">
+            <video
+              ref={ref}
+              className="object-cover w-full h-full"
+              autoPlay
+              muted={i === 0}
+              playsInline
+            />
+            <div className="absolute top-2 right-2 flex gap-2">
+              {(i === 0 && !isMicOn) && <MicOff className="w-5 h-5 text-red-500" />}
+              {(i === 0 && !isVideoOn) && <VideoOff className="w-5 h-5 text-red-500" />}
+              {(i === 0 && isScreenSharing) && <Monitor className="w-5 h-5 text-yellow-400" />}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Controls */}
+      <TooltipProvider>
+        <div className="flex items-center justify-center gap-4 py-4 border-t border-gray-700 bg-gray-900">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={toggleMic} variant="ghost">
+                {isMicOn ? <Mic className="text-green-500" /> : <MicOff className="text-red-500" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle Mic</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={toggleVideo} variant="ghost">
+                {isVideoOn ? <Video className="text-green-500" /> : <VideoOff className="text-red-500" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle Camera</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={toggleSpeaker} variant="ghost">
+                {isSpeakerOn ? <Volume2 className="text-blue-500" /> : <VolumeX className="text-gray-400" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle Speaker</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={isScreenSharing ? stopScreenShare : shareScreen} variant="ghost">
+                {isScreenSharing ? <MonitorOff className="text-yellow-500" /> : <Monitor className="text-white" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Share Screen</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={cleanup} variant="destructive" className="rounded-full bg-red-600 hover:bg-red-700 p-3">
+                <PhoneOff className="text-white" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>End Call</TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
+
+      <audio ref={remoteAudioRef} hidden />
     </div>
-
   );
 };
 
