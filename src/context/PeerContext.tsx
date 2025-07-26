@@ -4,6 +4,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
   useCallback,
@@ -37,78 +38,91 @@ const rtcConfig: RTCConfiguration = {
 };
 
 export const PeerProvider = ({ children }: PeerProviderProps) => {
-  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     const pc = new RTCPeerConnection(rtcConfig);
 
-    pc.ontrack = (event) => {
+    pc.ontrack = (event: RTCTrackEvent) => {
       if (event.streams && event.streams[0]) {
         setRemoteStream(event.streams[0]);
       }
     };
 
-    setPeerConnection(pc);
+    peerConnectionRef.current = pc;
 
     return () => {
+      pc.getSenders().forEach((sender) => sender.track?.stop());
       pc.close();
-      setPeerConnection(null);
+      peerConnectionRef.current = null;
       setRemoteStream(null);
     };
   }, []);
 
+  const getPeerConnection = () => {
+    const pc = peerConnectionRef.current;
+    if (!pc || pc.signalingState === "closed") return null;
+    return pc;
+  };
+
   const addTracks = useCallback((stream: MediaStream) => {
-    if (!peerConnection || peerConnection.signalingState === "closed") return;
+    const pc = getPeerConnection();
+    if (!pc) return;
 
     stream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, stream);
+      pc.addTrack(track, stream);
     });
-  }, [peerConnection]);
+  }, []);
 
-  const createOffer = async (): Promise<RTCSessionDescriptionInit | null> => {
+ const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
+  const pc = peerConnectionRef.current;
+  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return null;
 
-    console.log(peerConnection, 'from off context')
-    if (!peerConnection) return null;
-    console.log(peerConnection, 'no 0 from off context')
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  return offer;
+}, []);
 
-    const offer = await peerConnection.createOffer();
-    console.log(offer, 'off context')
 
-    await peerConnection.setLocalDescription(offer);
-    return offer;
-  }
+ const createAnswer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
+  const pc = peerConnectionRef.current;
+  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return null;
 
-  const createAnswer = useCallback(async () => {
-    if (!peerConnection || peerConnection.signalingState === "closed") return null;
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    return answer;
-  }, [peerConnection]);
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  return answer;
+}, []);
+
 
   const setRemoteDescription = useCallback(async (desc: RTCSessionDescriptionInit) => {
-    if (!peerConnection || peerConnection.signalingState === "closed") return;
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
-  }, [peerConnection]);
+  const pc = peerConnectionRef.current;
+  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return;
+
+  if (pc.signalingState !== "have-local-offer" && pc.signalingState !== "have-remote-offer") {
+    console.warn("Skipping setRemoteDescription: Not in a negotiation state");
+    return;
+  }
+
+  await pc.setRemoteDescription(new RTCSessionDescription(desc));
+}, []);
+
 
   const closeConnection = useCallback(() => {
-    if (peerConnection) {
-      peerConnection.getSenders().forEach((sender) => {
-        try {
-          sender.track?.stop();
-        } catch (_) {}
-      });
-
-      peerConnection.close();
-      setPeerConnection(null);
-      setRemoteStream(null);
+    const pc = peerConnectionRef.current;
+    if (pc) {
+      pc.getSenders().forEach((sender) => sender.track?.stop());
+      pc.close();
     }
-  }, [peerConnection]);
+
+    peerConnectionRef.current = null;
+    setRemoteStream(null);
+  }, []);
 
   return (
     <PeerContext.Provider
       value={{
-        peerConnection,
+        peerConnection: peerConnectionRef.current,
         remoteStream,
         createOffer,
         createAnswer,
