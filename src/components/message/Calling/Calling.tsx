@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Phone, Video } from 'lucide-react';
 import { RootState } from '@/store/store';
@@ -11,26 +11,33 @@ import VideoCall from './VideoCall';
 import AudioCall from './AudioCall';
 import PermissionDialog from './PermissionDialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { usePeer } from '@/context/PeerContext';
+import { getSocket } from '@/lib/socket';
 
 interface CallingProps {
   receiver: User | null;
 }
 
 const Calling: React.FC<CallingProps> = ({ receiver }) => {
+  const {
+    peerConnection,
+    createOffer,
+    // setRemoteDescription,
+  } = usePeer();
+
+  const socket = getSocket();
   const user = useSelector((state: RootState) => state.authSlice.user);
   const [isCall, setIsCall] = useState(false);
   const [audioCall, setAudioCall] = useState(false);
   const [videoCall, setVideoCall] = useState(false);
   const [permissionPopup, setPermissionPopup] = useState(false);
   const [isCheckingMedia, setIsCheckingMedia] = useState(false);
-  const [remoteSDP, setRemoteSDP] = useState<any>(null);
 
   const permissions = usePermissionState(isCall);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const audio = searchParams.get("audio");
-    const offer = searchParams.get("off");
 
     if (audio === "1") {
       try {
@@ -43,11 +50,18 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
     }
   }, [searchParams]);
 
+  const createCallOffer = useCallback(async () => {
+    if (!peerConnection) return;
+    const offer = await createOffer();
+    socket.emit("offer", { to: receiver?.id, sdp: offer });
+  }, [createOffer, peerConnection, receiver?.id, socket]);
+
   const handleAudioCall = async () => {
     if (!receiver || !user) return toast.error("Missing user info");
 
     setIsCall(true);
     setAudioCall(true);
+    createCallOffer()
 
     try {
       setIsCheckingMedia(true);
@@ -85,7 +99,6 @@ const Calling: React.FC<CallingProps> = ({ receiver }) => {
     setIsCall(false);
     setAudioCall(false);
     setVideoCall(false);
-    setRemoteSDP(null);
 
     const cleanURL = window.location.pathname;
     window.history.replaceState({}, "", cleanURL);

@@ -34,14 +34,15 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
   const {
     peerConnection,
     addTracks,
-    createOffer,
-    setRemoteDescription,
+    // createOffer,
+    // setRemoteDescription,
   } = usePeer();
 
   const socket = getSocket();
   const searchParams = useSearchParams();
   const audio = searchParams.get("audio");
 
+  const [callInitiated, setCallInitiated] = useState<boolean>(false);
   const [connectionState, setConnectionState] = useState<string>("Not Connected");
   const [callTime, setCallTime] = useState<number>(0);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -61,6 +62,7 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
     mediaStreamRef,
     localVideoRef
   );
+
 
   useEffect(() => {
     if (!peerConnection) return;
@@ -134,17 +136,6 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
     init();
   }, []);
 
-  const createCallOffer = useCallback(async () => {
-    if (!peerConnection) return;
-    const offer = await createOffer();
-    socket.emit("offer", { to: receiver?.id, sdp: offer });
-  }, [peerConnection]);
-
-  useEffect(() => {
-    if (audio !== "1") {
-      createCallOffer();
-    }
-  }, [audio, createCallOffer]);
 
   const startCallTimer = () => {
     if (!callTimerRef.current) {
@@ -163,12 +154,17 @@ const AudioCall: React.FC<AudioCallProps> = ({ receiver, endCall }) => {
 
   const cleanup = () => {
     stopCallTimer();
+    peerConnection?.getSenders().forEach(sender => {
+      if (sender.track) sender.track.stop();
+    });
+
     peerConnection?.close();
     mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     socket.off("offer");
     socket.off("answer");
     socket.off("ice-candidate");
+    setCallInitiated(false);
     endCall();
   };
 
