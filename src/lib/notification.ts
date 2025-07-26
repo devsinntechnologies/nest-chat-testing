@@ -9,7 +9,6 @@ export function showIncomingCallNotification({
   icon?: string;
   onClick?: () => void;
 }) {
-  const soundUrl = '/incoming.mp3'
   if (!("Notification" in window)) return;
 
   if (Notification.permission === "granted") {
@@ -17,12 +16,6 @@ export function showIncomingCallNotification({
       body,
       icon,
     });
-
-     if (soundUrl) {
-      const audio = new Audio(soundUrl);
-      audio.loop = false;
-      audio.play().catch((err) => console.error("Notification sound error:", err));
-    }
 
     notification.onclick = () => {
       window.focus();
