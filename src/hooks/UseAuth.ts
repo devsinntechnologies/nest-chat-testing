@@ -32,41 +32,6 @@ export const auth = createApi({
         body: signupData,
       }),
     }),
-    forgotPassword: builder.mutation({
-      query: (forgotPasswordData) => ({
-        url: "forgot-password",
-        method: "POST",
-        body: forgotPasswordData,
-      }),
-    }),
-    checkOtp: builder.mutation({
-      query: (otpData) => ({
-        url: "/checkOtp",
-        method: "POST",
-        body: otpData,
-      }),
-    }),
-    verifyEmail: builder.mutation({
-      query: (otpData) => ({
-        url: "/verify-email",
-        method: "POST",
-        body: otpData,
-      }),
-    }),
-    resendVerificationEmail: builder.mutation({
-      query: (email) => ({
-        url: "/resend-verification-email",
-        method: "POST",
-        body: email,
-      }),
-    }),
-    resetPassword: builder.mutation({
-      query: (resetPasswordData) => ({
-        url: "reset-password",
-        method: "POST",
-        body: resetPasswordData,
-      }),
-    }),
     getUserProfile: builder.query({
       query: () => `/profile`,
     }),
@@ -80,64 +45,13 @@ export const auth = createApi({
         body: updateData,
       }),
     }),
-
-    getUserAddress: builder.query({
-      query: () => `getUserAddress`,
-    }),
-
-    addUserAddress: builder.mutation({
-      query: (addressData) => ({
-        url: "addUserAddress",
-        method: "POST",
-        body: addressData,
-      }),
-    }),
-    updateUserAddress: builder.mutation({
-      query: ({ id, address, phoneNo }) => ({
-        url: `/updateAddressById/${id}`,
-        method: "PATCH",
-        body: { address, phoneNo },
-      }),
-    }),
-
-    changePassword: builder.mutation({
-      query: (passwordData) => ({
-        url: `change-password`,
-        method: "POST",
-        body: passwordData,
-      }),
-    }),
-    updateProfileImage: builder.mutation({
-      query: (formData) => ({
-        url: "/update-profile-image",
-        method: "POST",
-        body: formData,
-      }),
-    }),
-    deleteAddressById: builder.mutation({
-      query: (id) => ({
-        url: `deleteAddressById/${id}`,
-        method: "DELETE",
-      }),
-    }),
   }),
 });
 
 export const {
   useLoginMutation,
   useSignupMutation,
-  useForgotPasswordMutation,
-  useCheckOtpMutation,
-  useVerifyEmailMutation,
-  useResendVerificationEmailMutation,
-  useResetPasswordMutation,
   useGetUserProfileQuery,
   useUpdateProfileMutation,
-  useAddUserAddressMutation,
-  useChangePasswordMutation,
-  useDeleteAddressByIdMutation,
-  useUpdateProfileImageMutation ,
-  useUpdateUserAddressMutation,
-  useGetUserAddressQuery,
   useGetAllUsersQuery
 } = auth;

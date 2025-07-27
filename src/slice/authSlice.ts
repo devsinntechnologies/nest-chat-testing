@@ -1,26 +1,22 @@
 import { decodeToken } from '@/lib/utils';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-// Define User and UserProfile interfaces
 interface User {
   id: string;
   email: string;
 }
 
 interface UserProfile {
-  // Define properties for user profile as needed
   name?: string;
   imageUrl?: string;
   email?: string;
-  // Add other relevant fields
 }
 
-// Define the structure of the Auth state
 interface AuthState {
   token: string | null;
   user: User | null;
   isLoggedIn: boolean;
-  userProfile: UserProfile | null; // Initialize user profile state
+  userProfile: UserProfile | null;
 }
 
 // Function to get token from local storage
@@ -34,7 +30,7 @@ const getTokenFromLocalStorage = (): AuthState => {
           token,
           user: { id: decoded.id, email: decoded.email },
           isLoggedIn: true,
-          userProfile: null, // Initialize user profile state
+          userProfile: null,
         };
       }
     }
@@ -74,7 +70,7 @@ export const authSlice = createSlice({
       localStorage.removeItem('token');
     },
     setUserProfile: (state, action: PayloadAction<UserProfile | null>) => {
-      state.userProfile = action.payload; // Store the user profile data in state
+      state.userProfile = action.payload;
     },
   },
 });

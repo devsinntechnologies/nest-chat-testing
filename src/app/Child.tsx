@@ -1,38 +1,43 @@
 "use client";
 
-import Header from "@/components/layout/header/Header";
-import { Suspense, ReactNode, useEffect, useState } from "react";
+import { useEffect, useState, Suspense, ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useNetworkState } from "react-use";
 import { useDispatch } from "react-redux";
-import { setOnlineStatus } from "@/slice/networkSlice";
+import { useNetworkState } from "react-use";
 import { toast } from "sonner";
 import { RefreshCcw } from "lucide-react";
+
+import Header from "@/components/layout/header/Header";
+import { setOnlineStatus } from "@/slice/networkSlice";
+import { useGetUserProfileQuery } from "@/hooks/UseAuth";
+import { setUserProfile } from "@/slice/authSlice";
 
 interface ChildProps {
   children: ReactNode;
 }
 
+const NO_HEADER_ROUTES = ["/auth", "/messages", "/workspaces"];
+const NO_CONTAINER_ROUTES = ["/auth", "/messages"];
+
 export default function Child({ children }: ChildProps) {
   const pathname = usePathname();
-  const { online } = useNetworkState();
   const dispatch = useDispatch();
-  const [userMode, setUserMode] = useState<string | null>(null);
+  const { online } = useNetworkState();
 
-//  useEffect(() => {
-//   const socket = getSocket();
-//   if (!socket) return;
+  const showHeader = !NO_HEADER_ROUTES.some(route =>
+    pathname?.startsWith(route)
+  );
 
-//   const handleWelcome = (data: { message: string }) => {
-//     toast.success(data.message);
-//   };
+  const containerize = !NO_CONTAINER_ROUTES.some(route =>
+    pathname?.startsWith(route)
+  );
 
-//   socket.on('welcome', handleWelcome);
+  const isMessagesRoute =
+    pathname === "/messages" || pathname?.startsWith("/messages/");
 
-//   return () => {
-//     socket.off('welcome', handleWelcome);
-//   };
-// }, [getSocket]);
+  const {
+    data: user,
+  } = useGetUserProfileQuery({ refetchOnMountOrArgChange: true });
 
   useEffect(() => {
     if (
@@ -50,17 +55,19 @@ export default function Child({ children }: ChildProps) {
     dispatch(setOnlineStatus(isOnline));
 
     if (!isOnline) {
-      toast.error('No Internet Connection', {
-        description: 'You are currently offline',
+      toast.error("No Internet Connection", {
+        description: "You are currently offline",
       });
     } else {
-      toast.success('Back Online', {
+      toast.success("Back Online", {
         description: "You're reconnected!",
         action: {
-          label: <>
-            <RefreshCcw className="w-4 pl-1" />
-            <span className="px-1">Refresh</span>
-          </>,
+          label: (
+            <>
+              <RefreshCcw className="w-4 pl-1" />
+              <span className="px-1">Refresh</span>
+            </>
+          ),
           onClick: () => window.location.reload(),
         },
         duration: 5000,
@@ -68,41 +75,26 @@ export default function Child({ children }: ChildProps) {
     }
   }, [online, dispatch]);
 
-  const noHeaderRoutes = ["/auth", "/seller", "/messages", "/workspaces"];
-  const noContainerize = ["/auth", "/messages"];
-
-  const showHeader = !noHeaderRoutes.some((route) =>
-    pathname?.startsWith(route)
-  );
-  const containerize = !noContainerize.some((route) =>
-    pathname?.startsWith(route)
-  );
-
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUserMode = localStorage.getItem("USER");
-      setUserMode(storedUserMode);
-    }
-  }, []);
-
-  // Check if the current path is messages or any messages sub-route
-  const isMessagesRoute = pathname === '/messages' || pathname?.startsWith('/messages/');
+    if (user?.data) dispatch(setUserProfile(user.data));
+  }, [dispatch, user?.data]);
 
   return (
     <>
       {showHeader && <Header />}
       <Suspense
         fallback={
-          <>
-            <>Loading....</>
-            <span className="hidden">
-              {userMode === "seller" && <p>Seller Mode Activated</p>}
-            </span>
-          </>
+          <div className="w-screen h-screen flex items-center justify-center bg-background text-foreground">
+            <div className="flex flex-col items-center space-y-8">
+              <div className="animate-ping rounded-full h-10 w-10 bg-primary" />
+              <pre className="text-lg font-semibold">Loading...</pre>
+            </div>
+          </div>
         }
       >
-        <main className={`w-full min-h-[40vh] ${!isMessagesRoute ? 'pt-3' : ''}`}>
-          <div className={`mx-auto ${containerize && "min-[1440px]:w-[1440px]"}`}>
+
+        <main className={`w-full min-h-[40vh] ${!isMessagesRoute ? "pt-3" : ""}`}>
+          <div className={`mx-auto ${containerize ? "min-[1440px]:w-[1440px]" : ""}`}>
             {children}
           </div>
         </main>

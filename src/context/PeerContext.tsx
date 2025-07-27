@@ -75,37 +75,60 @@ export const PeerProvider = ({ children }: PeerProviderProps) => {
     });
   }, []);
 
- const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
-  const pc = peerConnectionRef.current;
-  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return null;
+  const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
+    const pc = peerConnectionRef.current;
+    if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return null;
 
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  return offer;
-}, []);
-
-
- const createAnswer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
-  const pc = peerConnectionRef.current;
-  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return null;
-
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  return answer;
-}, []);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    console.log("createOff")
+    return offer;
+  }, []);
 
 
-  const setRemoteDescription = useCallback(async (desc: RTCSessionDescriptionInit) => {
-  const pc = peerConnectionRef.current;
-  if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return;
+  const createAnswer = useCallback(async (): Promise<RTCSessionDescriptionInit | null> => {
+    const pc = peerConnectionRef.current;
+    if (!pc || pc.signalingState === "closed") return null;
 
-  if (pc.signalingState !== "have-local-offer" && pc.signalingState !== "have-remote-offer") {
-    console.warn("Skipping setRemoteDescription: Not in a negotiation state");
-    return;
-  }
+    try {
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      console.log("✅ createAnswer:", answer.type);
+      return answer;
+    } catch (err) {
+      console.error("❌ createAnswer failed:", err);
+      return null;
+    }
+  }, []);
 
-  await pc.setRemoteDescription(new RTCSessionDescription(desc));
-}, []);
+
+  const setLocalDescription = useCallback(async (desc: RTCSessionDescriptionInit) => {
+    const pc = peerConnectionRef.current;
+    if (!pc || pc.signalingState === "closed" || pc.signalingState === "stable") return;
+
+    try {
+      await pc.setLocalDescription(new RTCSessionDescription(desc));
+    } catch (err) {
+      console.error("Failed to setLocalDescription:", err);
+    }
+  }, []);
+
+  const setRemoteDescription = useCallback(async (desc: RTCSessionDescriptionInit | null) => {
+    const pc = peerConnectionRef.current;
+    if (!pc || pc.signalingState === "closed") return;
+    if (!desc || !desc.type || !desc.sdp) {
+      console.error("❌ Invalid SDP received:", desc);
+      return;
+    }
+
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(desc));
+      console.log("✅ setRemoteDescription success:", desc.type);
+    } catch (err) {
+      console.error("❌ setRemoteDescription failed:", err);
+    }
+  }, []);
+
 
 
   const closeConnection = useCallback(() => {

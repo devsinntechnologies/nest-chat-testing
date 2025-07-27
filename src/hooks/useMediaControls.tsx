@@ -15,8 +15,19 @@ export const useMediaControls = (mediaStreamRef: React.RefObject<MediaStream | n
   const toggleVideo = useCallback(() => {
     const videoTrack = mediaStreamRef.current?.getVideoTracks()[0];
     if (videoTrack) {
-      videoTrack.enabled = !videoTrack.enabled;
-      setIsVideoOn(videoTrack.enabled);
+      if (videoTrack.enabled) {
+        videoTrack.stop(); // this fully turns off the camera
+        setIsVideoOn(false);
+      } else {
+        // Re-acquire camera if needed
+        navigator.mediaDevices.getUserMedia({ video: true }).then((newStream) => {
+          const newVideoTrack = newStream.getVideoTracks()[0];
+          if (mediaStreamRef.current) {
+            mediaStreamRef.current.addTrack(newVideoTrack);
+            setIsVideoOn(true);
+          }
+        });
+      }
     }
   }, [mediaStreamRef]);
 
